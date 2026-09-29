@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "jd-agent: SQS container (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "jd_agent.container.cli",
+      "args": ["--container", "sqs"],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+      },
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

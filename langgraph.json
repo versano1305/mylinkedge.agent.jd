@@ -1,0 +1,10 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "dependencies": ["."],
+  "graphs": {
+    "jd_extract": "./src/jd_agent/graphs/jd_extract/jd_extract_graph.py:graph",
+    "gap_collect": "./src/jd_agent/graphs/gap_collect/gap_collect_graph.py:graph",
+    "resume_generate": "./src/jd_agent/graphs/resume_generate/resume_generate_graph.py:graph"
+  },
+  "env": ".env"
+}

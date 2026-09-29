@@ -1,0 +1,577 @@
+[
+  {
+    "id": "acb953f5-ec87-428b-914c-992e782ff09a",
+    "name": "Software Architecture",
+    "description": "The fundamental structures of a software system, encompassing the organization of its components and their interactions. The application of design principles and patterns to create scalable, maintainable, and efficient software solutions. Knowledge of Software Architecture is used to guide the development process, ensuring that the system meets both functional and non-functional requirements while facilitating future enhancements and integration."
+  },
+  {
+    "id": "0afdd675-06c5-41e4-a23d-a87067ab6fac",
+    "name": "Artificial Intelligence",
+    "description": "The simulation of human intelligence processes by machines, particularly computer systems. The development of algorithms and models that enable machines to perform tasks such as learning, reasoning, problem-solving, and understanding natural language. Knowledge of Artificial Intelligence is used to enhance decision-making, automate processes, and improve user experiences across various applications, including data analysis, robotics, and virtual assistants."
+  },
+  {
+    "id": "f32aa015-5e7e-41f9-99d1-99d1e79d4d2c",
+    "name": "Cloud Computing Architecture",
+    "description": "Process of designing and implementing software applications and infrastructure in the cloud environment. It requires a specialized skill set that includes knowledge of cloud computing principles, understanding of cloud providers and their services, expertise in system design and integration, and experience in deploying and maintaining cloud-based solutions. Cloud architects are responsible for ensuring that cloud systems are scalable, secure, reliable, and cost-effective. They work closely with developers, operations teams, and stakeholders to define cloud strategies, select appropriate cloud services, and manage the overall cloud environment."
+  },
+  {
+    "id": "a9f68cbc-05e8-4133-8cc2-4dfd3c5ec93a",
+    "name": "Azure Data Lake",
+    "description": "Cloud-based data platform that provides scalable and secure storage for big data. It allows organizations to store, process, and analyze large amounts of structured and unstructured data using tools such as Hadoop and Spark. With Azure Data Lake, businesses can leverage the power of big data to gain insights, drive decision-making, and create new opportunities. This specialized skill requires knowledge in data storage, processing, and analysis using Azure Data Lake tools and services."
+  },
+  {
+    "id": "27ec8d5a-6bd7-4a2a-b0e1-d68005c88588",
+    "name": "Data Architecture",
+    "description": "The structural design of data systems, encompassing the organization, storage, and management of data within an organization. The creation of data models, database designs, and data integration strategies that ensure data is accessible, reliable, and secure. Knowledge of Data Architecture is used to support data governance, facilitate data flow between systems, and enable effective data analysis for informed decision-making."
+  },
+  {
+    "id": "781c651c-79c3-49ae-8e99-d28a6bec7cc8",
+    "name": "Cloud-Native Architecture",
+    "description": "A design approach that enables the development and deployment of applications in cloud environments, utilizing microservices, containers, and dynamic orchestration. Principles of scalability, resilience, and automation, allowing for efficient resource management and rapid iteration of software. Knowledge of Cloud-Native Architecture is used to enhance application performance, facilitate continuous integration and delivery, and improve overall system reliability in cloud-based infrastructures."
+  },
+  {
+    "id": "e00c8527-09e5-4d98-9909-48a3ae5270a7",
+    "name": "Software As A Service (SaaS)",
+    "description": "SaaS is a software delivery model where the software is hosted and managed by a vendor and accessed by users over the internet. It requires specialized skills in cloud computing, software development, and customer service to develop and deliver high-quality SaaS products. These skills are essential to ensuring the reliability, security, and performance of the SaaS application, as well as providing excellent customer support."
+  },
+  {
+    "id": "fe9f0954-170b-4be5-98e4-a7162c830df8",
+    "name": "Cloud-Native Applications",
+    "description": "Software development approach that involves building and deploying applications that are optimized for cloud infrastructure. It involves designing applications as a set of loosely coupled, independently deployable microservices that can be scaled up or down as needed. Cloud-native applications typically rely on containers, serverless computing, and other cloud-specific technologies to abstract away the underlying infrastructure and enable greater scalability, agility, and resilience. This specialized skill involves expertise in containerization, orchestration, continuous integration/continuous delivery (CI/CD), and cloud service providers such as AWS, Azure, or Google Cloud Platform."
+  },
+  {
+    "id": "7ac6193b-5697-4e66-8a99-8a6a63d013a9",
+    "name": "Cloud-Native Computing",
+    "description": "The design and development of applications that are built to operate in cloud environments, leveraging the scalability, flexibility, and resilience of cloud infrastructure. The use of microservices, containerization, and orchestration technologies to create applications that can be easily deployed, managed, and scaled. Knowledge of Cloud-Native Computing is used to enhance application performance, streamline development processes, and improve resource utilization by enabling continuous integration and delivery practices."
+  },
+  {
+    "id": "24067629-cc21-491c-9b15-65e61ad564ee",
+    "name": "Data Lakehouse",
+    "description": "Data management approach that combines the best aspects of data lakes and data warehouses. It integrates large-scale data storage and processing capabilities with schema enforcement and query performance optimizations, enabling comprehensive data analysis and exploration. This approach is used to manage diverse data types and sources efficiently, facilitating data-driven decision-making and advanced analytics within organizations."
+  },
+  {
+    "id": "85db6206-cf7b-4dd5-9a73-65c6d8fe620a",
+    "name": "Data Lakes",
+    "description": "Centralized repositories that store vast amounts of structured and unstructured data in its raw format. The ability to manage, process, and analyze data from various sources, enabling organizations to derive insights and support decision-making. Knowledge of Data Lakes is used to facilitate data integration, enhance data accessibility, and enable advanced analytics, thereby improving data-driven strategies and operational efficiency."
+  },
+  {
+    "id": "78701b50-bbdf-4b74-bc0b-7ee0f7c1f90d",
+    "name": "Technology Roadmaps",
+    "description": "Strategic planning tools that outline the vision, goals, and milestones for the development and implementation of technology initiatives. Analyzing current technological trends, assessing organizational needs, and identifying future opportunities to guide decision-making processes. Knowledge of Technology Roadmaps is used to align technology investments with business objectives, facilitate communication among stakeholders, and prioritize projects to ensure effective resource allocation and risk management."
+  },
+  {
+    "id": "2fe0eab0-5a33-400e-a988-5a8c118610fe",
+    "name": "Software Development Life Cycle",
+    "description": "(SDLC) is a process through which software development teams build and deliver high-quality software. It involves various phases such as planning, designing, coding, testing, and maintenance. Each of these phases plays a critical role in ensuring that the software is efficient, effective, and meets the needs of the end-users. SDLC requires specialized skills, including technical expertise, project management, communication, and problem-solving abilities. Successful software development depends on careful planning, efficient execution, and effective communication between team members and stakeholders."
+  },
+  {
+    "id": "99a22969-5b36-4b45-af9b-6b45e0cd73bd",
+    "name": "Artificial Intelligence Development",
+    "description": "Creating systems and algorithms that enable machines to perform tasks that typically require human intelligence. Understanding machine learning, natural language processing, and computer vision, which are essential for building intelligent applications. Knowledge of Artificial Intelligence Development is used to enhance decision-making, automate processes, and improve user experiences across various industries by leveraging data analysis and predictive modeling."
+  },
+  {
+    "id": "a84a7227-2cef-49e3-9d07-1e402f7535c0",
+    "name": "Artificial Intelligence Strategy",
+    "description": "The development and implementation of organizational plans to leverage artificial intelligence technologies. This includes identifying AI opportunities, aligning initiatives with business goals, managing risks, and ensuring ethical and regulatory compliance."
+  },
+  {
+    "id": "2f06c00a-b79f-4878-a10b-85debfc6767a",
+    "name": "AI Best Practices",
+    "description": "Standardized guidelines and methodologies that promote the ethical, effective, and efficient development and deployment of artificial intelligence systems. This skill includes knowledge of model governance, responsible data use, and performance evaluation to ensure reliability and transparency. It is used to guide the lifecycle of AI projects in alignment with organizational goals and regulatory requirements."
+  },
+  {
+    "id": "5bb8c0db-e542-48f8-89b4-c8f830485a88",
+    "name": "Design",
+    "description": "Lightcast skill category: Design"
+  },
+  {
+    "id": "2e787198-2b8c-457b-9f03-0819e8b96db6",
+    "name": "AI Agents",
+    "description": "Are software entities that use artificial intelligence to perceive their environment, make decisions, and perform tasks autonomously. They are used in applications such as virtual assistants, automated customer service, and intelligent robotics to improve efficiency and user interaction."
+  },
+  {
+    "id": "b68969bd-eef9-4c11-869c-58843461fde1",
+    "name": "Software Construction",
+    "description": "Designing, coding, testing, and maintaining software applications. Various programming techniques, methodologies, and tools that facilitate the development of reliable and efficient software systems. Knowledge of Software Construction is used to create functional software solutions by implementing algorithms, managing data structures, and ensuring code quality through testing and debugging practices."
+  },
+  {
+    "id": "1aee0134-7f94-41f8-9a73-884a990a27df",
+    "name": "Software Maintenance",
+    "description": "Modifying and updating software applications after their initial deployment to correct faults, improve performance, or adapt to a changing environment. Activities such as debugging, patching, and enhancing software functionality to ensure continued usability and relevance. Knowledge of Software Maintenance is used to manage software lifecycles effectively, ensuring that applications remain efficient, secure, and aligned with user needs over time."
+  },
+  {
+    "id": "97266ed8-62b3-4b8d-bc34-256208234d9c",
+    "name": "Platform Design And Development",
+    "description": "Creating and implementing software platforms that serve as a foundation for applications and services. Understanding architecture, user experience, and integration techniques to ensure scalability, functionality, and usability. Knowledge of Platform Design And Development is utilized to build systems that support various user needs, facilitate data management, and enable seamless interactions between different software components."
+  },
+  {
+    "id": "a80e5a88-4aae-4a4d-8898-6482831c2e23",
+    "name": "Agentic AI",
+    "description": "Artificial intelligence systems designed to act with autonomy and intentionality, making decisions based on goals and environmental inputs. It is used to develop technologies that perform complex tasks independently, enhancing adaptability in dynamic scenarios."
+  },
+  {
+    "id": "d37b98fd-7d1f-4e86-81a6-eef435fd09cf",
+    "name": "Agentic Systems",
+    "description": "Systems or frameworks that enable entities to act independently, make decisions, and execute tasks autonomously. Understanding and designing systems that prioritize self-directed actions and adaptive behaviors within defined parameters. Agentic Systems are utilized in applications such as robotics, artificial intelligence, and automated processes to achieve specific outcomes efficiently. It focuses on creating systems that respond dynamically to changing environments or inputs."
+  },
+  {
+    "id": "fc81ea75-d417-467f-9395-991859f1b2e0",
+    "name": "Scalability",
+    "description": "The capacity of a system, network, or process to handle a growing amount of work or its potential to accommodate growth. The design and implementation of solutions that can efficiently expand in response to increased demand without compromising performance. Knowledge of Scalability is used to assess and enhance the ability of applications and infrastructure to support larger workloads, ensuring reliability and efficiency as requirements evolve."
+  },
+  {
+    "id": "cccf3974-f1a6-48f4-9b60-10e65f7bd9be",
+    "name": "Resilience",
+    "description": "Capacity to bounce back from setbacks, adapt to challenges, and maintain a positive attitude in the face of uncertainty and adversity. It involves effectively managing related risks and fostering the ability to recover and thrive in various circumstances. Navigate life's ups and downs, remain resourceful during difficult times, and continue working towards one's goals, even when facing adversity."
+  },
+  {
+    "id": "9c95c22e-d9a9-4219-9172-0bbb015e845d",
+    "name": "Cybersecurity",
+    "description": "Lightcast skill subcategory: Cybersecurity"
+  },
+  {
+    "id": "a623a7ec-e197-4442-b5cd-2fadf04cb642",
+    "name": "Distributed Computing",
+    "description": "Use of multiple computers or nodes in a network to solve complex computational problems. This requires specialized skills and knowledge in areas such as network architecture, distributed algorithms, and parallel programming. Efficient use of distributed computing can help organizations handle large-scale data processing, improve system reliability, and accelerate computational speed."
+  },
+  {
+    "id": "b3eccea6-b57b-4cab-942a-155cd79d3214",
+    "name": "High Availability Design",
+    "description": "Creating systems and architectures that ensure continuous operational performance and minimal downtime. The principles of redundancy, failover mechanisms, and load balancing to maintain service availability even in the event of component failures. Knowledge of High Availability Design is used to implement solutions in critical environments, such as data centers and cloud services, where uninterrupted access to applications and data is essential for business continuity."
+  },
+  {
+    "id": "ed2a517c-4caa-418a-87de-f4ac91b4e935",
+    "name": "Distributed System Security Architecture",
+    "description": "Design and implementation of security measures for systems that are composed of multiple interconnected components or nodes. This involves creating a secure network topology, designing secure communication protocols, and implementing authentication and authorization mechanisms to control access to system resources. The goal is to protect against unauthorized access and ensure the integrity, confidentiality, and availability of data and services in the distributed system."
+  },
+  {
+    "id": "f72b5680-854a-49dd-a409-77614deab1d1",
+    "name": "Collaboration",
+    "description": "Common skill that is essential for success in many fields. It involves working together with others to achieve a common goal, communicating effectively, and being open to new ideas and perspectives. Collaboration skills can be learned and improved through practice, and are highly valued by employers and organizations. Collaboration can be achieved through various tools and methods, such as virtual collaboration software, team building exercises, and group brainstorming sessions."
+  },
+  {
+    "id": "b32c58ba-8ec8-47e3-95dd-4444890463ba",
+    "name": "Technical Solution Design",
+    "description": "Creating structured and effective solutions to meet specific technical requirements and challenges. Analyzing user needs, defining system architecture, and selecting appropriate technologies to ensure optimal functionality and performance. Knowledge of Technical Solution Design is utilized to develop comprehensive plans that guide the implementation of systems and applications, ensuring alignment with business objectives and technical standards."
+  },
+  {
+    "id": "fee12c47-24b3-4e04-8604-c4ad30645e04",
+    "name": "Software Product Management",
+    "description": "Guiding the development and lifecycle of software products from conception to market delivery. Defining product vision, gathering and prioritizing requirements, and coordinating cross-functional teams to ensure successful product outcomes. Knowledge of Software Product Management is used to align product features with customer needs and business goals, facilitating effective decision-making and resource allocation throughout the product development process."
+  },
+  {
+    "id": "7a5c186a-7043-439f-8270-50a9dd6596dc",
+    "name": "Agile Product Development",
+    "description": "Specialized process involving iterative and incremental development of a product, where requirements and solutions evolve through the collaborative effort of cross-functional teams. It involves breaking down a larger project into smaller, manageable pieces called sprints and continuously testing and evaluating the product. This approach focuses on delivering high-quality products quickly, responding to customer feedback and changing requirements, balancing time, cost, and scope constraints, and fostering collaboration and communication among team members. Effective implementation of Agile Product Development requires a specialized skill set, including the ability to manage complexity, embrace change, work collaboratively, communicate effectively, and constantly learn and improve."
+  },
+  {
+    "id": "2305ade6-6ff1-487a-9211-6915b1de6fea",
+    "name": "Digital Product Management",
+    "description": "Overseeing the development and lifecycle of digital products, ensuring they meet user needs and business objectives. Strategic planning, prioritization of features, and collaboration with cross-functional teams to deliver effective solutions. Knowledge of Digital Product Management is used to analyze market trends, gather user feedback, and implement iterative improvements, ultimately enhancing product performance and user satisfaction."
+  },
+  {
+    "id": "af7f519d-b2da-4dcd-bae3-097d36b2f094",
+    "name": "Agile Product Management",
+    "description": "Specialized process for developing and managing products that emphasizes collaboration, flexibility, and constant iteration. It involves close collaboration between cross-functional teams, quick feedback loops, and prioritization of features based on customer needs and feedback. Agile product managers must be able to balance strategic vision with tactical execution, and be adept at managing stakeholder expectations while leading their teams through rapid cycles of testing and delivery. Successful agile product management requires a deep understanding of agile methodologies, user-centered design, and product development processes grounded in data-driven insights."
+  },
+  {
+    "id": "7607b49b-b107-4922-a861-197a4e3e6942",
+    "name": "Technical Documentation",
+    "description": "The creation, organization, and maintenance of materials that communicate complex technical information clearly and accurately. It includes user manuals, standard operating procedures, product specifications, and system design documents. The skill supports knowledge transfer, regulatory compliance, and operational consistency by ensuring that technical content is accessible and aligned with its intended audience."
+  },
+  {
+    "id": "d078bdb7-93b6-4ebd-9be6-d52ce74a3326",
+    "name": "Project Planning",
+    "description": "Process of defining, organizing, and scheduling tasks and resources to achieve specific project goals within a defined timeframe. It involves defining project scope, identifying tasks, developing a project schedule and budget, and creating a communication and risk management plan. Effective project planning is essential for successful project completion and requires specialized skills such as problem-solving, critical thinking, and leadership."
+  },
+  {
+    "id": "e8640f32-e738-4725-b91e-5d6ad4264119",
+    "name": "Strategic Technology Planning",
+    "description": "Aligning technology initiatives with an organization's overall goals and objectives. Assessing current technology capabilities, identifying future needs, and developing a roadmap for technology investments and implementations. Knowledge of Strategic Technology Planning is used to ensure that technology resources are effectively utilized to support business strategies, enhance operational efficiency, and drive innovation."
+  },
+  {
+    "id": "3deb3da6-b043-4585-9332-8c67f2ef3221",
+    "name": "Design Reviews",
+    "description": "Are a specialized skill that involves evaluating design concepts, drawings, and plans against established criteria and standards. The goal of a design review is to ensure that the proposed design meets the requirements of the client, is feasible, and produces the desired outcomes. The design review process includes evaluating the quality of design, identifying any problems or issues, and suggesting improvements or modifications where necessary. It requires knowledge of design theory, engineering principles, building codes, materials, and construction techniques. People who conduct design reviews often have expertise in architecture, engineering, or construction."
+  },
+  {
+    "id": "c4e32233-a4fd-4bc0-90fa-2bab29e967f2",
+    "name": "Technology Assessment",
+    "description": "The systematic evaluation of the potential impacts, benefits, and risks associated with the development and implementation of new technologies. Analyzing technical, economic, social, and environmental factors to inform decision-making processes. Knowledge of Technology Assessment is used to guide policy development, investment strategies, and research priorities by providing evidence-based insights into the implications of adopting specific technologies."
+  },
+  {
+    "id": "fecb1377-1f14-464e-9249-c91dfe6a9b0d",
+    "name": "Production Code",
+    "description": "Process of writing code that is optimized for speed, reliability, and scalability. Knowledge of programming best practices, such as modularity, code reusability, testing, and performance analysis. The goal of production code is to create software that is efficient and robust, able to handle heavy user loads, and minimize downtime or errors. This skill is particularly important for developers who work on large or complex software projects, where stability, speed, and scalability are critical components of success."
+  },
+  {
+    "id": "0059c5fe-6754-440d-9507-7304aba8302f",
+    "name": "Proof Of Concept (POC) Development",
+    "description": "Creating a preliminary model or prototype to demonstrate the feasibility of a concept or idea. Designing and implementing a limited version of a product or solution to validate its functionality and potential effectiveness. Knowledge of Proof Of Concept (POC) Development is used to assess technical and operational viability, gather user feedback, and inform decision-making for further development or investment in a project."
+  },
+  {
+    "id": "87793f2f-5e3c-4cbc-ab6d-830867ee1647",
+    "name": "Reliability",
+    "description": "The consistent ability to perform tasks, fulfill obligations, and meet expectations over time. It involves dependability, accuracy, and consistency in actions and results. Build trust, maintain standards, and ensure that tasks are completed efficiently and on schedule."
+  },
+  {
+    "id": "ae78906c-bda6-4c1d-a832-144ddeef698e",
+    "name": "Observability",
+    "description": "Monitor, understand, and diagnose the internal state of a system from its external outputs. It involves the use of tools and practices to collect, analyze, and visualize data from software applications and infrastructure. Key aspects include log management, performance metrics, tracing, and anomaly detection. This skill is crucial in DevOps, Site Reliability Engineering (SRE), and software development roles for ensuring system reliability, performance optimization, and issue resolution."
+  },
+  {
+    "id": "9ac649e5-aea6-4eee-ac54-71f78aad664f",
+    "name": "Operational Excellence",
+    "description": "Ability to devise an approach to business management emphasizing continuous improvement across all aspects of the business and within all processes. Creating a culture where both management and employees are committed to business outcomes and empowered to implement change. Professionals with Operational Excellence contribute to the development of efficient and effective business processes, fostering an environment of ongoing enhancement and adaptability to achieve organizational goals."
+  },
+  {
+    "id": "e1fbdc78-6a2d-490e-ab76-d3e26d5015ab",
+    "name": "Technical Leadership",
+    "description": "Guide and manage technical teams, oversee project execution, and make informed decisions on technology-related matters. It requires a deep understanding of technical concepts, project management, and team dynamics. Key aspects include strategic thinking, problem-solving, communication, and the ability to inspire and motivate teams. This skill also involves staying updated with the latest technological trends and implementing them effectively to achieve business goals."
+  },
+  {
+    "id": "7068d14c-4ca7-4f0c-8544-264e3e673f6c",
+    "name": "Influencing Skills",
+    "description": "Persuade or convince others to support an idea, decision or action. This involves understanding the perspectives and needs of others, communicating effectively, building trust and rapport, and using various techniques such as negotiation and persuasion to achieve the desired outcome. Influencing skills are commonly required in various personal and professional settings, such as leadership, sales, marketing, and teamwork."
+  },
+  {
+    "id": "4fc8676d-2c4f-480f-af3d-6061bc6f3a9c",
+    "name": "Architectural Leadership",
+    "description": "The specialized skill of effectively leading and managing architectural projects and teams. An architectural leader must possess both technical expertise and leadership competencies to ensure the successful design, development, and delivery of projects. This involves setting goals, creating strategies, fostering teamwork, and inspiring innovation, while keeping in mind the needs of stakeholders and adhering to industry standards and regulations. Effective architectural leadership is essential for achieving project success and advancing the profession."
+  },
+  {
+    "id": "37c738c6-52a8-4a82-8f0d-e16378d2b2e9",
+    "name": "Team Leadership",
+    "description": "Ability to guide, direct, and motivate a group of individuals towards a common goal. It involves effective communication, delegation, and conflict resolution skills. Strong team leaders are able to build trust, foster collaboration, and recognize individual strengths and weaknesses to effectively manage and develop their team. This skill is highly valued in many industries and is essential for the success of any team or organization."
+  },
+  {
+    "id": "2d8691a1-1b5e-4e30-8e4a-47b26d3a738a",
+    "name": "Coaching",
+    "description": "Skill that involves guiding, supporting, and motivating individuals or teams to achieve their goals and objectives. It is commonly used in professional, personal, and athletic settings to improve performance and build confidence. The main goal of coaching is to help individuals develop their skills and abilities to achieve their desired outcomes. Coaching can be formal or informal and can involve different techniques like active listening, questioning, feedback, and goal-setting."
+  },
+  {
+    "id": "3929a568-afaf-4305-b733-883dc54c0511",
+    "name": "Stakeholder Engagement",
+    "description": "Critical skill that involves the ability to effectively interact with all parties associated with a company. It requires understanding the interests, needs, and levels of engagement of these stakeholders, and how the company's plans and actions may impact their objectives. Foster strong relationships, facilitate communication, and align company strategies with stakeholder expectations, ultimately contributing to the successful achievement of organizational goals."
+  },
+  {
+    "id": "b14589ec-fd26-4060-8604-e355c4ca4dd7",
+    "name": "Public Speaking",
+    "description": "Ability to deliver a coherent and compelling message to a live audience. It involves conveying information clearly, engaging the audience, and instilling confidence in the speaker. Public speaking is a valuable skill in a variety of contexts, including business, politics, education, and entertainment. It can be learned and improved with practice and preparation."
+  },
+  {
+    "id": "71d392a2-465f-4504-a541-5e2f16031c00",
+    "name": "Proposal Strategy",
+    "description": "Developing and presenting proposals that effectively address the needs and objectives of stakeholders. Analyzing requirements, identifying key messages, and structuring content to enhance clarity and persuasiveness. Knowledge of Proposal Strategy is used to create compelling proposals that facilitate decision-making and foster collaboration among involved parties."
+  },
+  {
+    "id": "89282c1f-8487-4726-a683-940e6c9466b2",
+    "name": "Project Architecture",
+    "description": "The organization, design, and planning of the components and structure of a project, including its technical, functional, and operational requirements. It involves analyzing complex business needs and developing comprehensive technical solutions that meet those needs while also aligning with overall organizational goals. It requires specialized skills in software and systems engineering, as well as strong communication, leadership, and project management capabilities. Effective project architecture can lead to improved productivity, reduced costs, and higher-quality end products."
+  },
+  {
+    "id": "d766ab89-8ef6-4f6a-934f-53986d9b9ee2",
+    "name": "Software Design",
+    "description": "Defining the architecture, components, interfaces, and other characteristics of a software system. The application of design principles and methodologies to create software that meets specified requirements and user needs. Knowledge of Software Design is used to develop efficient, maintainable, and scalable software solutions by facilitating clear communication among stakeholders and guiding the implementation process."
+  },
+  {
+    "id": "efd657ab-476b-4147-878c-bc31bcde9b48",
+    "name": "Software Development",
+    "description": "Process of designing, creating, testing, and maintaining computer programs or software applications. It involves a specialized skill set, including knowledge of programming languages, algorithms, databases, and user interface design. Software developers use their skills to solve complex problems and create efficient, user-friendly software solutions that meet specific business or user needs. The tasks of software development include coding, testing, debugging, documentation, and collaboration with other members of the project team."
+  },
+  {
+    "id": "29e38519-b1ee-4879-bee5-f5533c47eee4",
+    "name": "Distributed Programming",
+    "description": "The method of designing and implementing software systems that run on multiple computers or nodes, which work together to achieve a common goal. Understanding the principles of concurrency, communication, and synchronization among distributed components. Knowledge of Distributed Programming is used to enhance system performance, reliability, and scalability in applications such as cloud computing, big data processing, and distributed databases by effectively managing resources and coordinating tasks across different machines."
+  },
+  {
+    "id": "17f45349-6cd3-47ef-8de2-112cf16c37b8",
+    "name": "Scalability Design",
+    "description": "Creating systems and architectures that can efficiently handle increased loads and demands without compromising performance. Understanding the principles of resource allocation, system architecture, and performance optimization to ensure that applications can grow seamlessly. Knowledge of Scalability Design is used to develop solutions that accommodate future growth, enhance user experience, and maintain operational efficiency in various environments."
+  },
+  {
+    "id": "88bd416c-6427-4c1b-8279-e012c6a6fd0d",
+    "name": "Distributed Design Patterns",
+    "description": "Established solutions for common problems encountered in distributed systems architecture. The understanding of various design patterns that facilitate communication, data management, and fault tolerance across multiple networked components. Knowledge of Distributed Design Patterns is used to enhance system scalability, reliability, and maintainability by providing structured approaches to designing distributed applications and services."
+  },
+  {
+    "id": "3e3beb82-0566-4f9f-a755-0f81aa312b96",
+    "name": "Cloud-Native Development",
+    "description": "The design and implementation of applications that fully exploit the advantages of cloud computing models. It involves building and running scalable applications in dynamic environments like public, private, and hybrid clouds. Key aspects include containerization, microservices, continuous delivery, and DevOps. Proficiency in cloud-native development requires knowledge of cloud platforms like AWS, Google Cloud, or Azure, and tools such as Kubernetes and Docker."
+  },
+  {
+    "id": "97196f30-c0a2-4382-a869-f99d96ef8cdf",
+    "name": "Cloud Design",
+    "description": "Planning and structuring cloud-based systems to ensure scalability, reliability, and security. Cloud Design uses architectural principles to define how applications, data, and infrastructure are deployed and managed in cloud environments. It supports the development of distributed systems that meet performance and cost-efficiency requirements. The skill enables the implementation of cloud solutions aligned with business and technical objectives."
+  },
+  {
+    "id": "6c2c8380-df69-472a-bb35-8a5905835e50",
+    "name": "Amazon Web Services",
+    "description": "(AWS) is a collection of remote computing services, including storage, databases, and application services, offered by Amazon.com. AWS can be used to host websites, store data, run applications, process big data, and to provide other computing resources to businesses and individuals worldwide. The ability to work with AWS and understand different services offered is considered a specialized skill in the software industry."
+  },
+  {
+    "id": "2999f58b-2e6d-473d-91b7-4ade11115975",
+    "name": "Kubernetes",
+    "description": "Open-source container orchestration platform that automates the deployment, scaling, and management of containerized applications. It provides a highly scalable and flexible way to manage and deploy applications in a cloud-native environment. With Kubernetes, developers can easily manage complex distributed systems and ensure that their applications are highly available and reliable. Kubernetes is widely used in cloud-native application development, and is considered a critical skill for DevOps professionals and cloud architects."
+  },
+  {
+    "id": "12e585cc-ace8-4f37-aac5-f28b504ba348",
+    "name": "Autoscaling",
+    "description": "The automatic adjustment of computing resources based on current demand, ensuring optimal performance and cost efficiency. Monitoring system metrics and dynamically allocating or deallocating resources such as servers or storage to match workload fluctuations. Knowledge of Autoscaling is used to enhance application availability and responsiveness by maintaining the necessary infrastructure during peak and off-peak times. It is essential for managing cloud environments and ensuring that resources are utilized effectively without manual intervention."
+  },
+  {
+    "id": "b9d228cf-3627-401a-8622-5d2c85cf9ca7",
+    "name": "Disaster Recovery",
+    "description": "The strategies and processes implemented to restore systems, data, and operations following a disruptive event, such as natural disasters, cyberattacks, or system failures. The development of plans that outline recovery objectives, resource allocation, and procedures to minimize downtime and data loss. Knowledge of Disaster Recovery is used to ensure business continuity by assessing risks, conducting impact analyses, and testing recovery plans to enhance resilience against future incidents."
+  },
+  {
+    "id": "experience:database-engineer-employer-a-january-2018-present:skill-system-performance-management",
+    "name": "System Performance Management",
+    "description": ""
+  },
+  {
+    "id": "f9194edf-60a3-4f1a-a8e2-fc63d7e9e897",
+    "name": "Parallel And Distributed Information Systems (PDIS)",
+    "description": "The framework that enables the processing and management of data across multiple computing resources simultaneously. Understanding the principles of data distribution, synchronization, and fault tolerance, which are essential for optimizing performance and scalability in complex systems. Knowledge of PDIS is utilized in various applications, including large-scale data analysis, cloud computing, and high-performance computing, by facilitating efficient resource allocation and enhancing system reliability."
+  },
+  {
+    "id": "7f99eb14-3d16-4968-9c87-e791d7f0232b",
+    "name": "High Availability Clusters",
+    "description": "Involve setting up redundant systems and networks to ensure that essential services remain available even in the event of hardware or software failures. This requires a specialized skillset that includes knowledge of clustering technologies, load balancing strategies, disaster recovery planning, and data replication techniques. Additionally, expertise in Linux or Unix operating systems, virtualization, and cloud computing is important for building and managing high availability clusters."
+  },
+  {
+    "id": "4c47dca2-8972-4cf3-8fd1-197b1d962a13",
+    "name": "Business Continuity And Disaster Recovery",
+    "description": "(BCDR) is a specialized area that involves developing contingency plans to ensure that critical business operations can continue in the event of a disruption. This involves assessing potential risks, identifying critical resources and establishing strategies to mitigate the impact of a potential disaster. The purpose of BCDR is to reduce the impact of a disaster on an organization and minimize the downtime it may experience. A skilled BCDR professional understands the key principles of disaster recovery, such as backup and recovery, and is experienced in working with technologies, such as virtualization and cloud computing, to implement effective solutions."
+  },
+  {
+    "id": "6db5eefa-0aec-4119-9920-ffc617b7039f",
+    "name": "Database Systems",
+    "description": "Organized collections of data that are managed and accessed through software applications. The design, implementation, and maintenance of databases, enabling efficient data storage, retrieval, and manipulation. Knowledge of Database Systems is used to support various applications, ensuring data integrity, security, and performance while facilitating data analysis and reporting."
+  },
+  {
+    "id": "requirements:requirements:skill-data-platforms",
+    "name": "Data Platforms",
+    "description": ""
+  },
+  {
+    "id": "0f011f2d-7406-4979-8fc0-e6e5abd562be",
+    "name": "Database Architecture",
+    "description": "The design and organization of data structures and systems that facilitate efficient data storage, retrieval, and management. The principles of database design, including schema definition, normalization, and indexing, which enable the creation of robust and scalable databases. Knowledge of Database Architecture is used to optimize data workflows, ensure data integrity, and support application performance by structuring data in a way that meets specific business requirements."
+  },
+  {
+    "id": "db5f230e-e5f6-4fbc-bdcc-775b6e330896",
+    "name": "Data Warehouse Architectures",
+    "description": "The structured frameworks that facilitate the storage, retrieval, and management of large volumes of data from various sources. The design and implementation of systems that support data integration, transformation, and analysis, enabling organizations to derive insights and make informed decisions. Knowledge of Data Warehouse Architectures is used to optimize data flow, ensure data quality, and enhance reporting capabilities across business intelligence applications."
+  },
+  {
+    "id": "355999b9-4dbf-465b-93c1-fdb741395f7e",
+    "name": "Very Large Databases (VLDB)",
+    "description": "Databases that are characterized by their immense size, typically exceeding terabytes of data, and the complexity of managing such vast amounts of information. Understanding the architecture, design, and management techniques necessary to store, retrieve, and manipulate large datasets efficiently. Knowledge of Very Large Databases (VLDB) is utilized in various applications, including data warehousing, big data analytics, and enterprise resource planning, where effective data handling and performance optimization are critical for decision-making and operational efficiency."
+  },
+  {
+    "id": "04ffc65e-5b03-426e-9049-adc3b34c9e4c",
+    "name": "Technical Writing",
+    "description": "Creating clear and concise documentation that conveys complex information in an accessible manner. Understanding the subject matter and the needs of the audience to produce manuals, guides, reports, and other instructional materials. Knowledge of Technical Writing is used to facilitate effective communication in various fields, ensuring that users can comprehend and apply the information provided. It plays a crucial role in enhancing user experience and supporting the implementation of technical processes and products."
+  },
+  {
+    "id": "3c930681-db2e-4e28-9649-8348c8d28a5b",
+    "name": "Effective Communication",
+    "description": "Ability to convey information clearly and succinctly, ensuring understanding and minimizing misinterpretation. It involves active listening, clear articulation, non-verbal cues, and the ability to tailor messages to the audience. This skill also includes written communication, such as drafting emails, reports, and presentations, with proper grammar, punctuation, and tone. Effective Communication fosters collaboration, enhances team productivity, and aids in conflict resolution."
+  },
+  {
+    "id": "f9911472-112c-4493-959b-2b09414f4744",
+    "name": "Software Design Description",
+    "description": "The documentation that outlines the architecture, components, interfaces, and data for a software system. The ability to create clear and comprehensive design documents that serve as a blueprint for development and guide the implementation process. Knowledge of Software Design Description is used to ensure that all stakeholders have a shared understanding of the system's design, facilitating communication and reducing the risk of errors during development."
+  },
+  {
+    "id": "91800f56-2109-4fae-9563-f2f866d884e8",
+    "name": "Design Documentation",
+    "description": "Creating detailed reports, diagrams, and schematics to outline the specifications, architecture, and functionality of a product or system. This skill requires proficiency in technical writing, understanding of design principles, and ability to use documentation tools. It also involves the ability to communicate complex design concepts clearly, ensuring all stakeholders understand the project's design aspects."
+  },
+  {
+    "id": "f8de06a2-cc67-44c1-bec8-0a6339cda119",
+    "name": "Technical Communication",
+    "description": "Conveying complex information clearly and effectively to a specific audience. The creation of documents, manuals, and presentations that facilitate understanding of technical subjects. Knowledge of Technical Communication is used to enhance user comprehension, support decision-making, and ensure accurate dissemination of information in various fields, including engineering, IT, and healthcare."
+  },
+  {
+    "id": "7efb907e-d0e6-4c78-ba2b-1d6a53941f36",
+    "name": "Software Documentation",
+    "description": "Critical aspect of software development that requires specialized skills. It involves the creation and maintenance of comprehensive and accurate documentation that guides users on how to use, install, operate, and maintain software systems. Effective software documentation improves the usability, quality, and reliability of software, and helps to minimize errors and bugs, enhancing user experience and satisfaction. Skilled software documentation specialists must have excellent writing and communication skills, technical expertise, and be familiar with relevant software development methodologies and tools."
+  },
+  {
+    "id": "2675bc86-8820-40d4-af16-8eb745d2e63c",
+    "name": "Product Management",
+    "description": "Guiding a product's development from conception to market launch and beyond. Defining product vision, gathering and prioritizing customer requirements, and collaborating with cross-functional teams to ensure successful product delivery. Knowledge of Product Management is used to align product strategy with business goals, enhance user experience, and adapt to market changes through iterative feedback and analysis."
+  },
+  {
+    "id": "621ded26-5405-45a9-b7fa-2b4c121316a9",
+    "name": "Engineering Management",
+    "description": "Application of engineering principles, business practices, and leadership skills to manage complex engineering projects, teams, and organizations. It involves managing technical resources, budgeting, strategic planning, project management, communication, decision-making, and teamwork to achieve business goals. Successful engineering managers must have a strong technical background as well as excellent leadership and communication skills to effectively manage teams of engineers and work collaboratively with other departments."
+  },
+  {
+    "id": "c301cb54-1c65-4ac2-bec9-75d822ba8b5f",
+    "name": "Leadership",
+    "description": "Skill that is common among successful individuals in various fields. It involves the ability to motivate and guide a team towards achieving common goals. Good leadership qualities include effective communication, empathy, decision-making skills, adaptability, and vision. Leadership can be developed and honed through training, practice, and learning from others."
+  },
+  {
+    "id": "a9a6db36-5f30-4290-bce7-57cfc7050a3e",
+    "name": "Influencing Without Authority",
+    "description": "Guide decisions, shape perspectives, and gain commitment from stakeholders without relying on formal positional power. Building credibility, understanding stakeholder interests, communicating persuasively, and aligning objectives to achieve shared outcomes. It is used to drive collaboration, support cross functional initiatives, and facilitate change across teams and organizational levels."
+  },
+  {
+    "id": "a8a30aab-86fb-4bfc-be0a-c3f5d7b85582",
+    "name": "Innovation Leadership",
+    "description": "Ability to inspire and guide a team towards creative problem solving and innovative thinking. It requires specialized skills such as being open to new ideas, having a vision for the future, fostering a culture of experimentation and risk-taking, and empowering team members to be creative and innovative. Effective innovation leaders understand how to leverage technology, collaborate with others, and continually adapt strategies to stay ahead in a rapidly changing business landscape."
+  },
+  {
+    "id": "7642a712-d653-4308-b491-1ec0614a40e1",
+    "name": "Social Skills",
+    "description": "Communicate effectively and build relationships with others. It includes the ability to listen, express oneself clearly and openly, show empathy and understanding, negotiate and resolve conflicts, and adapt to varied social situations and cues. Social skills are essential for healthy social interactions and overall well-being, particularly in personal and professional settings."
+  },
+  {
+    "id": "c3c29d4a-6484-4fff-b09c-cb52639daae0",
+    "name": "Interactive Communications",
+    "description": "Skill of effectively communicating and exchanging information with others through various mediums such as written or verbal communication. It involves active listening, clear and concise messaging, and adapting communication style to fit the audience. This skill is essential in both personal and professional settings to build relationships, solve problems, and achieve goals."
+  },
+  {
+    "id": "99b0021b-a7c6-4260-bb06-e8c19ff60879",
+    "name": "Interpersonal Communications",
+    "description": "Effectively exchange information, feelings, and meaning through verbal and non-verbal messages. It is a crucial skill in fostering effective relationships within an organization, enabling the user to persuade, guide, and provide advice to individuals or teams. This skill is instrumental in facilitating collaboration, resolving conflicts, and promoting understanding and cooperation among team members."
+  },
+  {
+    "id": "a113cb1a-61ff-46ba-804a-456babb84a58",
+    "name": "Communication",
+    "description": "Ability to effectively interact, convey information, and collaborate with others in a clear and understandable manner. It involves the skill of translating complex data and information into a format that is comprehensible to diverse audiences. This skill is crucial in professional, personal, and academic settings, enabling individuals to exchange ideas, solve problems, and work together harmoniously. Effective communication fosters understanding and cooperation, making it an essential component of successful relationships and organizations."
+  },
+  {
+    "id": "d6aff17e-72e4-47fc-8564-e8cd36000ebc",
+    "name": "Experimentation",
+    "description": "Testing hypotheses through controlled methods to observe outcomes and gather data. Designing experiments, collecting and analyzing results, and drawing conclusions to validate or refute initial assumptions. Knowledge of Experimentation is used to enhance understanding in various fields, including science, engineering, and social research, by facilitating evidence-based decision-making and innovation."
+  },
+  {
+    "id": "c8842432-1f26-4fce-96e3-af571da1c884",
+    "name": "Experimental Learning",
+    "description": "Enables the use of hands-on experiences to explore, test, and understand concepts or processes. It involves applying trial-and-error methods and reflecting on both successes and failures to gain insight and improve performance. Solve problems, adapt to new situations, and enhance knowledge through practical application."
+  },
+  {
+    "id": "47a466d3-2e2d-4c62-a363-bff6d9ad932c",
+    "name": "Validation Testing",
+    "description": "Quality assurance process used to confirm that a system, product, or software meets specified requirements and performs as intended. It involves executing test cases under real-world conditions to verify functionality, reliability, and compliance with industry standards. This testing is widely applied in software development, manufacturing, and regulatory environments to ensure product integrity before deployment."
+  },
+  {
+    "id": "1d8a1a48-49c8-46c3-80e3-79f7b56b158a",
+    "name": "Shoulda",
+    "description": "Open-source, Ruby-based testing framework that is designed to simplify the process of writing automated tests for Ruby on Rails applications. It provides a domain-specific language (DSL) for defining test contexts and expectations, as well as a powerful set of built-in test helpers and assertion methods. Shoulda is designed to make testing faster, easier, and more efficient, enabling developers to focus on building high-quality applications without getting bogged down in the details of testing."
+  },
+  {
+    "id": "a2ac07d0-1948-4ea0-9a87-68927dbdf15b",
+    "name": "Hanami",
+    "description": "Open-source web application framework for Ruby programming language that is designed to streamline the development of web applications. It emphasizes on simplicity, modularity, and developer productivity, providing a rich set of features such as routing, ORM, view templates, and security mechanisms. Hanami is used by developers to build scalable, high-performance, and maintainable web applications."
+  },
+  {
+    "id": "fc7cbd78-76bc-436c-94d5-a0a8e3e5467a",
+    "name": "Data Engineering",
+    "description": "Process of designing, building, and maintaining the infrastructure required for the reliable and efficient collection, transformation, storage, and analysis of large volumes of data. It involves working with a wide range of data technologies, including databases, distributed systems, data pipelines, and data warehousing tools, and requires a high level of technical expertise in areas such as programming, data modeling, and data visualization. Data engineers are responsible for ensuring that data is clean, accurate, and available for use by data analysts and data scientists."
+  },
+  {
+    "id": "adf4d386-dedd-4f9a-8afb-70afcafe7be3",
+    "name": "Artificial Intelligence Systems",
+    "description": "The creation of intelligent software systems that can perform tasks that typically require human intelligence, such as understanding natural language, recognizing images, and making decisions. This field involves the use of machine learning, natural language processing, and other technologies to build systems that can learn and improve over time. AI systems are being used in a wide range of applications, from virtual assistants to self-driving cars, and are helping to transform many industries. Skilled professionals in AI systems typically have expertise in programming, data analysis, and mathematics."
+  },
+  {
+    "id": "667ae340-f6ad-4ef0-9110-16e45c8a9406",
+    "name": "Language Models",
+    "description": "Artificial intelligence systems designed to understand, generate, and manipulate human language by analyzing patterns within large datasets. These models use advanced algorithms and statistical techniques to predict word sequences, derive meaning, or respond contextually in natural language processing tasks. Language Models are applied in text generation, machine translation, sentiment analysis, and conversational AI, enabling automation and insights across various domains. They are instrumental in tasks requiring the interpretation or generation of natural language with high accuracy and coherence."
+  },
+  {
+    "id": "abf18c1c-dc50-4088-ac83-0bd406b29f21",
+    "name": "Large Language Modeling",
+    "description": "Skill that involves developing, training, and implementing machine learning models to understand and generate human language. It requires proficiency in natural language processing (NLP), deep learning algorithms, and programming languages like Python. Key tasks include data preprocessing, model training, and performance evaluation. Familiarity with tools such as GPT-3, BERT, and TensorFlow is often necessary. This skill also demands a strong understanding of linguistics and computational semantics to ensure accurate language interpretation."
+  },
+  {
+    "id": "9c790ccb-3d54-4994-8bbd-30595118b7b0",
+    "name": "GPT-4",
+    "description": "Large language model developed for natural language understanding and generation across a wide range of contexts. It enables the user to perform tasks such as text completion, summarization, translation, classification, and conversational interaction using deep learning techniques. The model supports integration into applications and workflows through APIs and development platforms. It is commonly used in content creation, customer support, coding assistance, and data analysis."
+  },
+  {
+    "id": "3a67e5a2-3b65-4f0e-befc-62ae284838f4",
+    "name": "Azure OpenAI",
+    "description": "Azure Open AI provides access to advanced language models for natural language processing tasks. The skill enables the use of pre-trained models for text generation, summarization, translation, and question-answering. It allows fine-tuning of models for specific applications, enhancing accuracy and performance in language understanding tasks. Azure Open AI integrates with Azure's infrastructure, offering scalable and secure deployment options."
+  },
+  {
+    "id": "5a762c71-8b7f-494e-bf69-aff762cf87eb",
+    "name": "Workflow Automation",
+    "description": "Automating repetitive tasks and processes within a business, usually through the use of software or technology. It requires a specialized skillset that includes knowledge of programming, data analysis, and process improvement. Workflow automation can help businesses save time, reduce errors, and increase efficiency by streamlining work processes."
+  },
+  {
+    "id": "bfcec806-583c-49ab-aefc-ff4f821ddb1b",
+    "name": "Automation Systems Design",
+    "description": "The development and planning of systems that control and automate machinery, processes, or equipment. Creating designs for control systems, including sensors, actuators, and software interfaces, to optimize performance and efficiency. Automation Systems Design enables precise control of industrial processes or operations, often focusing on increasing productivity, reducing human error, and ensuring safety. It plays a crucial role in the integration of hardware and software systems to meet specific operational needs."
+  },
+  {
+    "id": "754b4fc7-8b2c-431e-a68a-794c68ea9713",
+    "name": "Generative AI Agents",
+    "description": "Autonomous systems powered by artificial intelligence that create content, generate responses, or perform tasks based on input data and contextual understanding. These agents utilize advanced machine learning models to produce text, images, or other outputs in real-time. Generative AI Agents are used to enhance efficiency, automate workflows, and support decision-making in various domains by delivering dynamic and contextually relevant results."
+  },
+  {
+    "id": "0e52c7d3-c425-4194-a6d9-750b46efa8f9",
+    "name": "Agent Orchestration Frameworks",
+    "description": "Platforms or systems that manage the coordination, communication, and execution of tasks among multiple autonomous agents. This skill enables complex workflows by facilitating task delegation, state sharing, and collaborative behavior among agents."
+  },
+  {
+    "id": "b19dd7c0-d1ab-45b2-9f62-a885a411ffda",
+    "name": "Model Context Protocol (MCP)",
+    "description": "A standardized method for connecting artificial intelligence models with external tools, data sources, and applications. It enables the exchange of contextual information and operational requests between systems to support task execution, data retrieval, and workflow coordination."
+  },
+  {
+    "id": "d5ed8066-ef43-43fa-9ece-a3d66fbe07bd",
+    "name": "Retrieval Augmented Generation",
+    "description": ", which combines information retrieval techniques with generative models, focuses on enhancing the quality and relevance of generated content by incorporating retrieved data. It is used to query external knowledge bases or datasets, integrate the retrieved information into generative processes, and produce more accurate and context-aware outputs."
+  },
+  {
+    "id": "54258ca0-64ae-46bb-873e-6f22e7e3845b",
+    "name": "Java",
+    "description": "Lightcast skill subcategory: Java"
+  },
+  {
+    "id": "190b4f64-cef6-449f-9897-f44d4549f71f",
+    "name": ".NET Framework",
+    "description": "Software framework developed by Microsoft that includes a large class library and provides language interoperability across several programming languages. It is used primarily to develop Windows desktop applications, web applications, and mobile applications. As a specialized skill, proficiency in .NET Framework development involves knowledge of programming languages such as C#, VB.NET, and ASP.NET, as well as familiarity with software development tools such as Visual Studio and Azure."
+  },
+  {
+    "id": "aefe07bf-68f9-4a7d-887d-8c2272ad839a",
+    "name": "Node.js (Javascript Library)",
+    "description": "Node.js is an open-source, cross-platform JavaScript runtime environment for executing JavaScript code outside of a web browser. It allows developers to use JavaScript for server-side scripting and provides a platform for building scalable and high-performance applications. Node.js is commonly used for web applications, chat applications, real-time applications, and network applications. It is a highly in-demand skill for developers who want to work in modern web development."
+  },
+  {
+    "id": "0e24f27b-3660-46c6-ad36-72861e5e01b4",
+    "name": "Go (Programming Language)",
+    "description": "Go, also known as Golang, is an open-source programming language developed by Google. It is designed to be concise, simple, and efficient, with a focus on concurrency and scalability. Go is particularly suited for building server-side web applications, network services, and distributed systems. It has a strong type system, garbage collection, and a small runtime. Go is growing in popularity due to its ease of use, strong community support, and solid performance."
+  },
+  {
+    "id": "04c30bef-5117-469c-b9c2-7493fb29c5a4",
+    "name": "Core Product",
+    "description": "A core product refers to a specialized skill or expertise that differentiates a business from its competitors and is typically essential to the company's success. It is a product or service that is integral to the business and provides the most value to customers. This specialized skill can be in the form of technology, knowledge, or experience that gives a company a unique competitive advantage. Investing in core products is crucial for a business's growth and long-term success."
+  },
+  {
+    "id": "b60b3b33-5090-4e54-9c09-4f1475ead497",
+    "name": "Microsoft Azure",
+    "description": "Cloud computing platform that offers a wide range of services and tools to help organizations build, deploy, and manage their applications and infrastructure in the cloud. It provides services like virtual machines, storage, databases, analytics, networking, and more. Azure also supports a variety of programming languages, frameworks, and devices, making it a flexible and scalable option for businesses of all sizes. Specializing in Microsoft Azure involves learning the platform's key features and tools, including Azure Active Directory, Azure DevOps, Azure Functions, and Azure Kubernetes Service."
+  },
+  {
+    "id": "a897643b-41be-46af-8b6d-8ee1d1f71c2d",
+    "name": "Google Cloud Platform (GCP)",
+    "description": "Collection of Cloud Computing tools and services provided by Google that allows users to build, deploy, and scale applications, websites, and services on Google's infrastructure. It also provides storage, networking, and data processing solutions for businesses and organizations of all sizes. It includes services such as Compute Engine, App Engine, Kubernetes Engine, and BigQuery for infrastructure, application deployment, and data analysis, among others. GCP can be accessed through a web interface, command-line interface, or API."
+  },
+  {
+    "id": "9e13d61f-e3c5-45cc-a7c2-0ea3c9f19a0e",
+    "name": "Architecture Strategy",
+    "description": "The planning and development of structural frameworks for systems, organizations, or physical buildings to meet specific goals. It includes designing scalable, efficient, and adaptable solutions that align with business objectives and technological requirements. A clear strategy ensures long-term sustainability and operational efficiency."
+  },
+  {
+    "id": "ec1aa0df-b87e-4d8f-b011-5c67346fe050",
+    "name": "IT Architecture Design",
+    "description": "The planning and design of an organization's IT infrastructure, systems, and applications. It requires a deep understanding of business processes, technology trends, and IT standards. Key skills include system integration, data modeling, cloud computing, network design, and security architecture. Proficiency in architectural frameworks like TOGAF and software like CAD is often required. This skill also demands strategic thinking, problem-solving abilities, and excellent communication to effectively collaborate with stakeholders and IT teams."
+  }
+]
