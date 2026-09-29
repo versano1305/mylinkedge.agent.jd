@@ -10,6 +10,18 @@ Ported from ``notebooks/jd_gap_collector_v2`` (skills.ai.agents). Two closures:
 ``Domain`` skills are context, not competence, and are masked from both closures
 (see the skill-graph core model). The α coefficients are calibrated values — do
 not invent new ones here.
+
+Supply is damped against ontology density so that adding edges does not
+inflate mastery on its own (see ``docs/fit_normalization.md``):
+
+* **Fan-out scaling** — an arc's α is scaled by
+  ``min(1, (SUPPLY_FANOUT_REF / fanout) ** SUPPLY_FANOUT_BETA)``, where
+  ``fanout`` counts the arcs of the same edge type and direction leaving the
+  source. Fan-out is a property of the *whole* graph: callers that run the
+  closure over a pruned edge list must pass the full-graph ``fanout``.
+* **Top-k noisy-OR** — only the ``SUPPLY_TOP_K`` strongest contributions into
+  a skill are combined, so parallel paths added by an expansion stop
+  compounding.
 """
 
 from __future__ import annotations
@@ -25,6 +37,11 @@ Edge = tuple[str, str, str]  # (source_id, target_id, rel_type); source -[:rel]-
 DEMAND_GAMMA = 0.85
 SUPPLY_HOPS = 3
 DOMAIN_SKILL_TYPE = "Domain"
+
+# Density damping, tuned on the pre/post skill-expansion graphs.
+SUPPLY_FANOUT_REF = 5
+SUPPLY_FANOUT_BETA = 0.5
+SUPPLY_TOP_K = 3
 
 # Calibrated mastery-propagation coefficients (edge_type, direction) → α.
 # Forward = owning the source implies the target; backward = the reverse.
@@ -42,6 +59,9 @@ ALPHA: dict[tuple[str, str], float] = {
 IsDomain = Callable[[str], bool]
 
 SupplyInfluence = tuple[str, str, float]  # (source_id, target_id, α)
+
+# Arc count per ``fanout_key(source, rel_type, direction)``.
+SupplyFanout = dict[str, int]
 
 
 def make_is_domain(skill_meta: dict[str, dict[str, str]]) -> IsDomain:
@@ -77,22 +97,67 @@ def scc_warn(edges: list[Edge]) -> list[str]:
     return sample
 
 
-def build_supply_influence(
-    edges: list[Edge], is_domain: IsDomain
-) -> list[SupplyInfluence]:
-    """Directed supply-propagation arcs derived from ontology edges."""
+def fanout_key(source: str, rel_type: str, direction: str) -> str:
+    return f"{source}|{rel_type}|{direction}"
 
-    influence: list[SupplyInfluence] = []
+
+def _supply_arcs(
+    edges: list[Edge], is_domain: IsDomain
+) -> list[tuple[str, str, float, str]]:
+    """``(source, target, α, fanout_key)`` for every propagating arc."""
+
+    arcs: list[tuple[str, str, float, str]] = []
     for u, v, r in edges:
         if is_domain(u) or is_domain(v):
             continue
         a_fwd = ALPHA.get((r, "fwd"), 0.0)
         a_bwd = ALPHA.get((r, "bwd"), 0.0)
         if a_fwd > 0:
-            influence.append((u, v, a_fwd))
+            arcs.append((u, v, a_fwd, fanout_key(u, r, "fwd")))
         if a_bwd > 0:
-            influence.append((v, u, a_bwd))
-    return influence
+            arcs.append((v, u, a_bwd, fanout_key(v, r, "bwd")))
+    return arcs
+
+
+def supply_fanout(edges: list[Edge], is_domain: IsDomain) -> SupplyFanout:
+    """Count propagating arcs per source, edge type, and direction."""
+
+    counts: dict[str, int] = defaultdict(int)
+    for _src, _tgt, _alpha, key in _supply_arcs(edges, is_domain):
+        counts[key] += 1
+    return dict(counts)
+
+
+def fanout_scale(
+    fanout: int,
+    ref: float = SUPPLY_FANOUT_REF,
+    beta: float = SUPPLY_FANOUT_BETA,
+) -> float:
+    """α multiplier for an arc whose source fans out to ``fanout`` targets."""
+
+    if fanout <= ref:
+        return 1.0
+    return (ref / fanout) ** beta
+
+
+def build_supply_influence(
+    edges: list[Edge],
+    is_domain: IsDomain,
+    fanout: SupplyFanout | None = None,
+) -> list[SupplyInfluence]:
+    """Directed supply-propagation arcs with fan-out-scaled α.
+
+    ``fanout`` defaults to counts over ``edges``; pass the full-graph counts
+    when ``edges`` is a pruned subset so α matches the unpruned closure.
+    """
+
+    arcs = _supply_arcs(edges, is_domain)
+    if fanout is None:
+        fanout = supply_fanout(edges, is_domain)
+    return [
+        (src, tgt, alpha * fanout_scale(fanout.get(key, 1)))
+        for src, tgt, alpha, key in arcs
+    ]
 
 
 def demand_closure(
@@ -150,9 +215,16 @@ def supply_closure_noisy_or(
     edges: list[Edge],
     is_domain: IsDomain,
     hops: int = SUPPLY_HOPS,
+    *,
+    fanout: SupplyFanout | None = None,
+    top_k: int | None = SUPPLY_TOP_K,
 ) -> dict[str, float]:
-    """Noisy-OR supply propagation with the α table, both directions."""
-    influence = build_supply_influence(edges, is_domain)
+    """Top-k noisy-OR supply propagation with fan-out-scaled α, both directions.
+
+    ``fanout`` is forwarded to ``build_supply_influence``. ``top_k=None``
+    combines every contribution (plain noisy-OR).
+    """
+    influence = build_supply_influence(edges, is_domain, fanout)
 
     s: dict[str, float] = defaultdict(
         float, {k: float(v) for k, v in seeds.items() if v > 0}
@@ -164,6 +236,8 @@ def supply_closure_noisy_or(
                 contrib[tgt].append(alpha * s[src])
         nxt = dict(s)
         for tgt, probs in contrib.items():
+            if top_k is not None and len(probs) > top_k:
+                probs = sorted(probs, reverse=True)[:top_k]
             base = seeds.get(tgt, 0.0)
             remain = 1.0 - base
             for p in probs:

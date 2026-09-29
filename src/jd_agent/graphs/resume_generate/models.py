@@ -140,6 +140,8 @@ class Allocation(BaseModel):
     selected: dict[str, list[str]] = Field(default_factory=dict)
     promotion_groups: dict[str, list[str]] = Field(default_factory=dict)
     resume_fit: float = 0.0
+    resume_fit_baseline: float | None = None
+    resume_fit_normalized: float | None = None
     covered_jd_skill_ids: list[str] = Field(default_factory=list)
 
 
@@ -225,6 +227,13 @@ class TraceFit(BaseModel):
     before_interview: float | None = None
     profile: float | None = None
     resume: float | None = None
+    # Chance-corrected against degree-matched random profiles on the same graph.
+    before_interview_normalized: float | None = None
+    profile_baseline: float | None = None
+    profile_normalized: float | None = None
+    resume_baseline: float | None = None
+    resume_normalized: float | None = None
+    ontology: dict[str, Any] | None = None
 
 
 class CoverageCounts(BaseModel):

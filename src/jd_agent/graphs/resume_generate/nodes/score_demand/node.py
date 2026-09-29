@@ -12,6 +12,13 @@ from jd_agent.graphs.resume_generate.nodes.score_demand.profile_seeds import (
 )
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 from jd_agent.integrations.skills_graph import get_skills_graph
+from jd_agent.shared.fit_baseline import (
+    DegreeMatchedSampler,
+    chance_corrected_fit,
+    explicit_fit,
+    ontology_fingerprint,
+    profile_baseline,
+)
 from jd_agent.shared.gap_zones import (
     assign_zone,
     compute_gaps,
@@ -22,6 +29,7 @@ from jd_agent.shared.skill_closures import (
     make_is_domain,
     scc_warn,
     supply_closure_noisy_or,
+    supply_fanout,
 )
 from jd_agent.shared.supply_edge_prune import prune_supply_edges
 
@@ -76,8 +84,20 @@ def score_demand(
     for sid in d_star:
         weights.setdefault(sid, _DEFAULT_CLOSURE_WEIGHT)
 
-    s_star_profile = supply_closure_noisy_or(s_seed, edges, is_domain)
+    fanout = supply_fanout(edges, is_domain)
+    s_star_profile = supply_closure_noisy_or(s_seed, edges, is_domain, fanout=fanout)
     gaps_map, fit_profile = compute_gaps(d_star, s_star_profile, weights)
+
+    edges_subset = prune_supply_edges(edges, d_star, is_domain)
+    baseline = profile_baseline(
+        d_star,
+        weights,
+        s_seed,
+        edges_subset,
+        is_domain,
+        DegreeMatchedSampler(edges, (sid for sid in skill_meta if not is_domain(sid))),
+        fanout=fanout,
+    )
 
     held_ids = {sid for sid, val in s_explicit.items() if val > 0}
     ppr, rho = personalized_pagerank(edges, d_star, held_ids, is_domain)
@@ -87,11 +107,16 @@ def score_demand(
     for sid, dv in d_star.items():
         if dv <= 0:
             continue
-        zone, kind = assign_zone(sid, s_explicit, s_star_profile, ppr, rho)
+        zone, kind = assign_zone(
+            sid,
+            s_explicit,
+            s_star_profile,
+            ppr,
+            rho,
+            s_star_baseline=baseline.s_star_mean,
+        )
         zones[sid] = zone
         latent_kind[sid] = kind
-
-    edges_subset = prune_supply_edges(edges, d_star, is_domain)
 
     listed_ids = [str(t["skill_id"]) for t in jd_targets]
 
@@ -108,6 +133,13 @@ def score_demand(
         "zones": zones,
         "latent_kind": latent_kind,
         "fit_profile": round(fit_profile, 4),
+        "fit_profile_explicit": round(explicit_fit(d_star, weights, s_seed), 4),
+        "fit_profile_baseline": round(baseline.mean, 4),
+        "fit_profile_baseline_sd": round(baseline.sd, 4),
+        "fit_profile_normalized": round(
+            chance_corrected_fit(fit_profile, baseline.mean), 4
+        ),
+        "ontology": ontology_fingerprint(edges),
         "edges_subset": edges_subset,
         "gaps": {
             k: round(gaps_map.get(k, 0.0), 4)

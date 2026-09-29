@@ -29,8 +29,13 @@ from jd_agent.graphs.resume_generate.atom_supply_seeds import (
     build_context_skills_by_instance,
 )
 from jd_agent.graphs.resume_generate.constants import CONTEXT_SEED
+from jd_agent.shared.fit_baseline import (
+    DegreeMatchedSampler,
+    chance_corrected_fit,
+    profile_baseline,
+)
 from jd_agent.shared.resume_fit import delta_fit, merge_supply_seeds
-from jd_agent.shared.skill_closures import Edge, IsDomain
+from jd_agent.shared.skill_closures import Edge, IsDomain, SupplyFanout, supply_fanout
 
 
 def _max_highlights(template: dict[str, Any]) -> int:
@@ -49,12 +54,13 @@ def _ensure_standalone_values(
     weights: dict[str, float],
     edges: list[Edge],
     is_domain: IsDomain,
+    fanout: SupplyFanout,
 ) -> None:
     for atom in atoms:
         if atom.get("standalone_value") is not None:
             continue
         seeds = atom_supply_seeds(atom, context_by_instance, context_seed=CONTEXT_SEED)
-        delta = delta_fit({}, seeds, d_star, weights, edges, is_domain)
+        delta = delta_fit({}, seeds, d_star, weights, edges, is_domain, fanout)
         atom["standalone_value"] = delta * float(atom.get("strength") or 0.0)
 
 
@@ -66,17 +72,25 @@ def run_allocation(
     jd_context: dict[str, Any],
     edges: list[Edge],
     is_domain: IsDomain,
+    *,
+    sampler: DegreeMatchedSampler | None = None,
 ) -> Allocation:
-    """Build the full allocation payload."""
+    """Build the full allocation payload.
+
+    ``edges`` is the full skill graph; closures run over ``demand["edges_subset"]``
+    with full-graph fan-out. ``sampler`` draws the resume-fit baseline profiles
+    and defaults to one over the skills that appear in ``edges``.
+    """
 
     _ = jd_context
     d_star = {k: float(v) for k, v in (demand.get("d_star") or {}).items()}
     weights = {k: float(v) for k, v in (demand.get("weights") or {}).items()}
     edges_subset = list(demand.get("edges_subset") or edges)
+    fanout = supply_fanout(edges, is_domain)
 
     context_by_instance = build_context_skills_by_instance(atoms)
     _ensure_standalone_values(
-        atoms, context_by_instance, d_star, weights, edges_subset, is_domain
+        atoms, context_by_instance, d_star, weights, edges_subset, is_domain, fanout
     )
 
     exp_rows = experience_instances(dossier)
@@ -107,6 +121,7 @@ def run_allocation(
         is_domain,
         context_by_instance,
         max_highlights_total=_max_highlights(template or DEFAULT_TEMPLATE),
+        fanout=fanout,
     )
 
     selected_atoms = [
@@ -119,7 +134,17 @@ def run_allocation(
         ]
     )
     covered = covered_jd_skill_ids(
-        d_star, global_seeds, edges_subset, is_domain, selected_atoms
+        d_star, global_seeds, edges_subset, is_domain, selected_atoms, fanout=fanout
+    )
+
+    resume_fit = float(metrics["resume_fit"])
+    if sampler is None:
+        sampler = DegreeMatchedSampler(
+            edges,
+            (sid for u, v, _r in edges for sid in (u, v) if not is_domain(sid)),
+        )
+    baseline = profile_baseline(
+        d_star, weights, global_seeds, edges_subset, is_domain, sampler, fanout=fanout
     )
 
     return Allocation(
@@ -128,6 +153,8 @@ def run_allocation(
         budgets=budgets,
         selected=selected,
         promotion_groups=groups,
-        resume_fit=float(metrics["resume_fit"]),
+        resume_fit=resume_fit,
+        resume_fit_baseline=round(baseline.mean, 4),
+        resume_fit_normalized=round(chance_corrected_fit(resume_fit, baseline.mean), 4),
         covered_jd_skill_ids=covered,
     )

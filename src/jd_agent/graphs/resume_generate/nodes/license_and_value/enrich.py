@@ -17,7 +17,7 @@ from jd_agent.shared.atom_licensing import (
     partition_domain_skill_terms,
 )
 from jd_agent.shared.resume_fit import delta_fit, supply_star
-from jd_agent.shared.skill_closures import Edge, IsDomain
+from jd_agent.shared.skill_closures import Edge, IsDomain, SupplyFanout
 
 
 def enrich_atoms(
@@ -29,10 +29,14 @@ def enrich_atoms(
     jd_domains: list[dict[str, Any]],
     edges_subset: list[Edge],
     is_domain: IsDomain,
+    fanout: SupplyFanout | None = None,
     license_tau: float = LICENSE_TAU,
     context_seed: float = CONTEXT_SEED,
 ) -> list[dict[str, Any]]:
-    """Return atoms with ``licensed``, ``adjacent``, and ``standalone_value``."""
+    """Return atoms with ``licensed``, ``adjacent``, and ``standalone_value``.
+
+    ``fanout`` is the full-graph ``supply_fanout`` for the pruned ``edges_subset``.
+    """
 
     d_star = {k: float(v) for k, v in (demand.get("d_star") or {}).items()}
     weights = {k: float(v) for k, v in (demand.get("weights") or {}).items()}
@@ -65,7 +69,7 @@ def enrich_atoms(
             instance_domains |= domain_by_instance.get(parent, set())
 
         seeds = atom_supply_seeds(atom, context_by_instance, context_seed=context_seed)
-        s_star_atom = supply_star(seeds, edges_subset, is_domain)
+        s_star_atom = supply_star(seeds, edges_subset, is_domain, fanout)
 
         demand_lic, adjacent = partition_demand_skill_terms(
             atom_skill_ids=skill_ids,
@@ -88,7 +92,9 @@ def enrich_atoms(
 
         strength = float(atom.get("strength") or 0.0)
         if strength > 0 and str(atom.get("text") or "").strip():
-            delta = delta_fit({}, seeds, d_star, weights, edges_subset, is_domain)
+            delta = delta_fit(
+                {}, seeds, d_star, weights, edges_subset, is_domain, fanout
+            )
             atom["standalone_value"] = round(delta * strength, 6)
         else:
             atom["standalone_value"] = 0.0

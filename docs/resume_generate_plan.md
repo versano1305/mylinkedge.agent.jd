@@ -465,7 +465,9 @@ fit_profile, edges_subset}`.
   demand, and the skill graph is ~36k edges (99% `PART_OF`).
 
 **Acceptance.** For a fixture Person, zones match a hand-checked expectation;
-`edges_subset` gives identical `s_star` on `d_star` nodes to the full edge list.
+`edges_subset` gives identical `s_star` on `d_star` nodes to the full edge list
+when closures pass the full-graph `supply_fanout` (see
+[`fit_normalization.md`](fit_normalization.md)).
 
 ---
 

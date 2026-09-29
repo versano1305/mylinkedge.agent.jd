@@ -2,12 +2,20 @@
 
 Uses the same supply closure and ``compute_gaps`` aggregate as gap scoring,
 but seeded from selected resume atoms rather than the full profile.
+
+Callers pass ``demand["edges_subset"]`` as ``edges``; ``fanout`` must then be
+the full-graph ``supply_fanout`` so α matches the profile-level closure.
 """
 
 from __future__ import annotations
 
 from jd_agent.shared.gap_zones import compute_gaps
-from jd_agent.shared.skill_closures import IsDomain, Edge, supply_closure_noisy_or
+from jd_agent.shared.skill_closures import (
+    Edge,
+    IsDomain,
+    SupplyFanout,
+    supply_closure_noisy_or,
+)
 
 
 def merge_supply_seeds(*parts: dict[str, float]) -> dict[str, float]:
@@ -27,12 +35,13 @@ def supply_star(
     seeds: dict[str, float],
     edges: list[Edge],
     is_domain: IsDomain,
+    fanout: SupplyFanout | None = None,
 ) -> dict[str, float]:
     """Supply closure over ``edges`` (typically ``demand[\"edges_subset\"]``)."""
 
     if not seeds:
         return {}
-    return supply_closure_noisy_or(seeds, edges, is_domain)
+    return supply_closure_noisy_or(seeds, edges, is_domain, fanout=fanout)
 
 
 def resume_fit(
@@ -41,12 +50,13 @@ def resume_fit(
     seeds: dict[str, float],
     edges: list[Edge],
     is_domain: IsDomain,
+    fanout: SupplyFanout | None = None,
 ) -> float:
     """Aggregate JD fit for a resume seeded with ``seeds``."""
 
     if not d_star:
         return 1.0
-    s_star = supply_star(seeds, edges, is_domain)
+    s_star = supply_star(seeds, edges, is_domain, fanout)
     _, fit = compute_gaps(d_star, s_star, weights)
     return float(fit)
 
@@ -58,11 +68,17 @@ def delta_fit(
     weights: dict[str, float],
     edges: list[Edge],
     is_domain: IsDomain,
+    fanout: SupplyFanout | None = None,
 ) -> float:
     """Marginal fit gain from unioning ``add_seeds`` into ``current_seeds``."""
 
-    before = resume_fit(d_star, weights, current_seeds, edges, is_domain)
+    before = resume_fit(d_star, weights, current_seeds, edges, is_domain, fanout)
     after = resume_fit(
-        d_star, weights, merge_supply_seeds(current_seeds, add_seeds), edges, is_domain
+        d_star,
+        weights,
+        merge_supply_seeds(current_seeds, add_seeds),
+        edges,
+        is_domain,
+        fanout,
     )
     return after - before

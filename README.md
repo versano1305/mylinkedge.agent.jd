@@ -9,6 +9,9 @@ LangGraph project for job-description extraction. Graphs, nodes, and tools are s
 | `jd_extract` | Fetch or decode JD content, then parse into a structured extraction |
 | `gap_collect` | Compute JD/user skill gaps and persist them on `user_resume_builder.gaps` |
 
+Fit scores in `gap_collect` and `resume_generate` are normalized against Skill-ontology
+growth; see [`docs/fit_normalization.md`](docs/fit_normalization.md).
+
 Studio input for `gap_collect`:
 
 ```json

@@ -20,7 +20,7 @@ from jd_agent.shared.resume_fit import (
     resume_fit,
     supply_star,
 )
-from jd_agent.shared.skill_closures import Edge, IsDomain
+from jd_agent.shared.skill_closures import Edge, IsDomain, SupplyFanout
 
 
 def _atom_by_id(atoms: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -54,9 +54,10 @@ def _marginal_gain(
     edges: list[Edge],
     is_domain: IsDomain,
     context_by_instance: dict[str, list[str]],
+    fanout: SupplyFanout | None,
 ) -> float:
     add = atom_supply_seeds(atom, context_by_instance, context_seed=CONTEXT_SEED)
-    delta = delta_fit(coverage_seeds, add, d_star, weights, edges, is_domain)
+    delta = delta_fit(coverage_seeds, add, d_star, weights, edges, is_domain, fanout)
     return delta * float(atom.get("strength") or 0.0)
 
 
@@ -68,8 +69,9 @@ def covered_jd_skill_ids(
     selected_atoms: list[dict[str, Any]],
     *,
     license_tau: float = LICENSE_TAU,
+    fanout: SupplyFanout | None = None,
 ) -> list[str]:
-    s_star = supply_star(seeds, edges, is_domain)
+    s_star = supply_star(seeds, edges, is_domain, fanout)
     covered: set[str] = set()
     for jid, dv in d_star.items():
         if dv <= 0:
@@ -101,6 +103,7 @@ def select_atoms(
     *,
     max_highlights_total: int,
     min_gain: float = MIN_GAIN,
+    fanout: SupplyFanout | None = None,
 ) -> tuple[dict[str, list[str]], dict[str, float]]:
     """Return ``selected`` atom ids per experience and per-atom gain scores."""
 
@@ -141,11 +144,11 @@ def select_atoms(
         best = max(
             exp_atoms,
             key=lambda a: _marginal_gain(
-                a, cov, d_star, weights, edges, is_domain, context_by_instance
+                a, cov, d_star, weights, edges, is_domain, context_by_instance, fanout
             ),
         )
         gain = _marginal_gain(
-            best, cov, d_star, weights, edges, is_domain, context_by_instance
+            best, cov, d_star, weights, edges, is_domain, context_by_instance, fanout
         )
         selected[exp_id].append(str(best["atom_id"]))
         gain_by_atom[str(best["atom_id"])] = gain
@@ -172,7 +175,7 @@ def select_atoms(
                 continue
             cov = coverage_seeds_for(exp_id)
             gain = _marginal_gain(
-                atom, cov, d_star, weights, edges, is_domain, context_by_instance
+                atom, cov, d_star, weights, edges, is_domain, context_by_instance, fanout
             )
             if gain > best_gain:
                 best_gain = gain
@@ -191,5 +194,5 @@ def select_atoms(
             ),
         )
 
-    fit = resume_fit(d_star, weights, global_seeds, edges, is_domain)
+    fit = resume_fit(d_star, weights, global_seeds, edges, is_domain, fanout)
     return selected, {"resume_fit": fit, "gain_by_atom": gain_by_atom}

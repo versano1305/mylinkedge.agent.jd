@@ -24,7 +24,9 @@ from jd_agent.graphs.resume_generate.nodes.assemble_and_save.resume_document imp
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 
 
-def _session_gaps_fit(session: UserResumeBuilder | None) -> float | None:
+def _session_gaps_fit(
+    session: UserResumeBuilder | None, key: str = "fit"
+) -> float | None:
     if session is None:
         return None
     gaps = session.gaps
@@ -33,8 +35,12 @@ def _session_gaps_fit(session: UserResumeBuilder | None) -> float | None:
     meta = gaps.get("meta")
     if not isinstance(meta, dict):
         return None
-    fit = meta.get("fit")
+    fit = meta.get(key)
     return float(fit) if isinstance(fit, (int, float)) else None
+
+
+def _number(value: Any) -> float | None:
+    return float(value) if isinstance(value, (int, float)) else None
 
 
 def _jd_enriched(jd: JobDescription | None) -> bool:
@@ -168,11 +174,17 @@ def build_trace_document(state: ResumeGenerateState) -> ResumeTrace:
         unresolved = []
 
     session_for_fit = session if isinstance(session, UserResumeBuilder) else None
-    fit_profile = demand.get("fit_profile")
+    ontology = demand.get("ontology")
     fit = TraceFit(
         before_interview=_session_gaps_fit(session_for_fit),
-        profile=float(fit_profile) if isinstance(fit_profile, (int, float)) else None,
+        profile=_number(demand.get("fit_profile")),
         resume=float(allocation.resume_fit) if allocation.resume_fit else None,
+        before_interview_normalized=_session_gaps_fit(session_for_fit, "fit_normalized"),
+        profile_baseline=_number(demand.get("fit_profile_baseline")),
+        profile_normalized=_number(demand.get("fit_profile_normalized")),
+        resume_baseline=allocation.resume_fit_baseline,
+        resume_normalized=allocation.resume_fit_normalized,
+        ontology=ontology if isinstance(ontology, dict) else None,
     )
 
     coverage_raw = verification.get("coverage")

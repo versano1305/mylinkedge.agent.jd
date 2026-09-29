@@ -5,9 +5,11 @@ from __future__ import annotations
 import pytest
 
 from jd_agent.shared.skill_closures import (
+    SUPPLY_FANOUT_REF,
     demand_closure,
     make_is_domain,
     supply_closure_noisy_or,
+    supply_fanout,
 )
 from jd_agent.shared.supply_edge_prune import prune_supply_edges
 
@@ -76,3 +78,24 @@ def test_prune_supply_edges_preserves_long_upstream_chain() -> None:
     pruned = supply_closure_noisy_or(seeds, subset, is_domain)
     for sid in d_star:
         assert pruned.get(sid, 0.0) == pytest.approx(full.get(sid, 0.0))
+
+
+def test_pruned_closure_needs_full_graph_fanout_for_hubs() -> None:
+    # H REQUIRES the demanded skill T and many leaves that never reach demand.
+    # Pruning drops the leaf arcs, so fan-out must come from the full graph.
+    leaves = [f"L{i}" for i in range(SUPPLY_FANOUT_REF * 4)]
+    meta = {sid: {"name": sid, "skillType": "Tool"} for sid in ["H", "T", *leaves]}
+    edges = [("H", "T", "REQUIRES")] + [("H", leaf, "REQUIRES") for leaf in leaves]
+    is_domain = _is_domain(meta)
+    d_star = {"T": 1.0}
+    seeds = {"H": 1.0}
+
+    fanout = supply_fanout(edges, is_domain)
+    full = supply_closure_noisy_or(seeds, edges, is_domain, fanout=fanout)
+    subset = prune_supply_edges(edges, d_star, is_domain)
+    assert len(subset) < len(edges)
+
+    pruned = supply_closure_noisy_or(seeds, subset, is_domain, fanout=fanout)
+    assert pruned["T"] == pytest.approx(full["T"])
+    unscaled_subset = supply_closure_noisy_or(seeds, subset, is_domain)
+    assert unscaled_subset["T"] > full["T"]
