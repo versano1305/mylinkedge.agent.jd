@@ -12,7 +12,7 @@ from jd_agent.graphs.resume_generate.nodes.score_demand.node import score_demand
 from jd_agent.graphs.resume_generate.nodes.score_demand.profile_seeds import (
     profile_supply_seeds,
 )
-from jd_agent.shared.skill_closures import supply_closure_noisy_or
+from jd_agent.shared.skill_closures import supply_closure_noisy_or, supply_fanout
 from jd_agent.shared.supply_edge_prune import prune_supply_edges
 
 SKILL_META = {
@@ -77,10 +77,18 @@ def test_score_demand_node_builds_demand_payload(monkeypatch) -> None:
     assert demand["edges_subset"]
 
     is_domain = lambda sid: False  # noqa: E731
-    full = supply_closure_noisy_or({"B": 1.0}, EDGES, is_domain)
-    pruned = supply_closure_noisy_or({"B": 1.0}, demand["edges_subset"], is_domain)
+    fanout = supply_fanout(EDGES, is_domain)
+    full = supply_closure_noisy_or({"B": 1.0}, EDGES, is_domain, fanout=fanout)
+    pruned = supply_closure_noisy_or(
+        {"B": 1.0}, demand["edges_subset"], is_domain, fanout=fanout
+    )
     for sid in demand["d_star"]:
         assert pruned.get(sid, 0.0) == pytest.approx(full.get(sid, 0.0))
+
+    assert 0.0 <= demand["fit_profile_baseline"] <= 1.0
+    assert 0.0 <= demand["fit_profile_normalized"] <= 1.0
+    assert demand["fit_profile_explicit"] <= demand["fit_profile"]
+    assert demand["ontology"]["edge_count"] == len(EDGES)
 
 
 def test_score_demand_requires_jd_targets() -> None:

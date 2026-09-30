@@ -44,12 +44,17 @@ def generatable_instance_ids(
     instance_briefs: dict[str, InstanceBrief],
     allocation: Allocation,
 ) -> list[str]:
-    """Stable order for WU-09 Send fan-out."""
-    return [
-        iid
-        for iid in allocation.instance_order
-        if iid in instance_briefs and is_generatable_brief(instance_briefs[iid])
-    ]
+    """Stable order for WU-09 Send fan-out (unique ids only)."""
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for iid in allocation.instance_order:
+        if iid in seen:
+            continue
+        if iid not in instance_briefs or not is_generatable_brief(instance_briefs[iid]):
+            continue
+        seen.add(iid)
+        ordered.append(iid)
+    return ordered
 
 
 def build_instance_briefs(

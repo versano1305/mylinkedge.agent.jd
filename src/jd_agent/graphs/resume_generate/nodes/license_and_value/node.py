@@ -10,7 +10,7 @@ from jd_agent.graphs.resume_generate.models import Atom
 from jd_agent.graphs.resume_generate.nodes.license_and_value.enrich import enrich_atoms
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 from jd_agent.integrations.skills_graph import get_skills_graph
-from jd_agent.shared.skill_closures import Edge, make_is_domain
+from jd_agent.shared.skill_closures import Edge, make_is_domain, supply_fanout
 
 
 def license_and_value(
@@ -41,11 +41,8 @@ def license_and_value(
     }
     is_domain = make_is_domain(skill_meta)
 
-    edges_subset: list[Edge] = list(demand.get("edges_subset") or [])
-    if not edges_subset:
-        edges_subset = [
-            (e.source, e.target, e.type) for e in skills_graph.edges
-        ]
+    edges: list[Edge] = [(e.source, e.target, e.type) for e in skills_graph.edges]
+    edges_subset: list[Edge] = list(demand.get("edges_subset") or []) or edges
 
     enriched = enrich_atoms(
         list(raw_atoms),
@@ -55,6 +52,7 @@ def license_and_value(
         jd_domains=jd_domains,
         edges_subset=edges_subset,
         is_domain=is_domain,
+        fanout=supply_fanout(edges, is_domain),
     )
 
     return {

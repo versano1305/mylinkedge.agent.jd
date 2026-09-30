@@ -45,20 +45,25 @@ Understanding the per-skill fields helps interpret the output:
 1. **Demand closure (**`d`***)** — Starting from JD skills, propagate forward along
   `REQUIRES` / `USES` edges: needing skill A also needs its prerequisites and
    tools. Domain skills are excluded.
-2. **Supply closure (**`s`***)** — Starting from evidence-backed skills (noisy-OR
-  propagation with calibrated α coefficients), estimate implied mastery on
-   related skills even when not named on the resume.
+2. **Supply closure (**`s`***)** — Starting from evidence-backed skills (top-k
+  noisy-OR propagation with calibrated α coefficients, damped by source fan-out),
+   estimate implied mastery on related skills even when not named on the resume.
 3. **Per-skill gap** — For demand `d`*, supply `s*`, weight `w`, exponent `p`
   (currently `1`):
    `gap = w × d* × max(0, d* − s*)^p`
 4. **Fit** — Aggregate match score in `[0, 1]`:
   `fit = 1 − (Σ gap) / (Σ w × d*²)`
-5. **Three zones** — Each demand-closure skill is labeled for product UX:
+5. **Normalized fit** — Raw fit rises whenever the ontology gains edges, so the
+  user-facing score is chance-corrected against degree-matched random profiles
+  of the same size on the same graph:
+  `fit_normalized = max(0, (fit − fit_baseline) / (1 − fit_baseline))`.
+  See [`docs/fit_normalization.md`](../../../../docs/fit_normalization.md).
+6. **Three zones** — Each demand-closure skill is labeled for product UX:
 
   | Zone        | Meaning                                                                                                                                      |
   | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
   | `confirmed` | Explicit evidence or held skill on the profile (`s_explicit > 0`).                                                                           |
-  | `latent`    | Not stated, but the graph suggests the candidate may already have it (`s* > latent_delta` **or** high personalized PageRank vs held skills). |
+  | `latent`    | Not stated, but the graph suggests the candidate may already have it (chance-corrected `s*` > `latent_delta` **or** high personalized PageRank vs held skills). |
   | `true_gap`  | Neither explicit nor structurally implied—treat as a real gap to plan for.                                                                   |
 
    Latent sub-kinds: `latent_kind` is `implied` (supply closure) or `adjacent`
@@ -73,9 +78,16 @@ Understanding the per-skill fields helps interpret the output:
 
 | Field                       | Type     | Meaning                                                                                                                                                                                                  |
 | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fit`                       | number   | Current aggregate fit `[0, 1]`. Same basis as `review.headline`.                                                                                                                                         |
+| `fit`                       | number   | Raw aggregate fit `[0, 1]`. Moves with ontology density; prefer `fit_normalized` for display and comparisons.                                                                                            |
 | `fit_if_all_latent`         | number   | Counterfactual fit if every **latent** skill were confirmed at full mastery: latent ids are added to supply seeds, supply closure is re-run, then fit is recomputed (includes propagation to neighbors). |
 | `fit_uplift_latent`         | number   | `max(0, fit_if_all_latent − fit)`. Potential fit gain from the interview confirming all hidden skills.                                                                                                   |
+| `fit_explicit`              | number   | Fit from seed evidence alone (no graph propagation). Flat `fit_explicit` with a jumping `fit` means the change came from the ontology.                                                                   |
+| `fit_baseline`              | number   | Mean fit of 32 degree-matched random profiles of the same size on the same graph (chance level).                                                                                                        |
+| `fit_baseline_sd`           | number   | Standard deviation of those random-profile fits.                                                                                                                                                         |
+| `fit_normalized`            | number   | `max(0, (fit − fit_baseline) / (1 − fit_baseline))`. Share of the headroom above chance. Same basis as `review.headline`.                                                                                |
+| `fit_if_all_latent_normalized` | number | Normalized counterfactual, against a baseline sized to the profile **plus** all latent skills.                                                                                                        |
+| `fit_uplift_latent_normalized` | number | `fit_if_all_latent_normalized − fit_normalized`. Same basis as `review.latent_fit`.                                                                                                                   |
+| `ontology`                  | object   | `{edge_count, edge_hash, supply}` — graph and supply settings used. Compare scores only when `edge_hash` matches.                                                                                        |
 | `zone_counts`               | object   | Counts of skills in `confirmed`, `latent`, `true_gap`.                                                                                                                                                   |
 | `jd_skill_count`            | int      | Number of skills extracted from the JD before graph resolution.                                                                                                                                          |
 | `resolved_count`            | int      | JD skills successfully mapped to Skill graph node ids.                                                                                                                                                   |
@@ -97,10 +109,10 @@ Display-oriented blocks; safe to show candidates without exposing raw closure ma
 
 | Field                              | Type          | Meaning                                                                                                                 |
 | ---------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `headline`                         | string        | One-line summary: fit %, matched count, latent count, true-gap count.                                                   |
+| `headline`                         | string        | One-line summary: normalized fit %, matched count, latent count, true-gap count.                                        |
 | `latent_fit`                       | object | null | Present when `zone_counts.latent > 0`; otherwise `null`.                                                                |
-| `latent_fit.if_all_confirmed`      | number        | Same as `meta.fit_if_all_latent`.                                                                                       |
-| `latent_fit.uplift`                | number        | Same as `meta.fit_uplift_latent`.                                                                                       |
+| `latent_fit.if_all_confirmed`      | number        | Same as `meta.fit_if_all_latent_normalized`.                                                                            |
+| `latent_fit.uplift`                | number        | Same as `meta.fit_uplift_latent_normalized`.                                                                            |
 | `latent_fit.uplift_percent_points` | int           | Uplift expressed as percentage points (e.g. `11` for +11 pts).                                                          |
 | `latent_fit.sentence`              | string        | Ready-made copy for the UI.                                                                                             |
 | `critical_path`                    | string        | Longest `REQUIRES` chain among **true_gap** skills, as a sentence (learning order hint), or a fallback message if none. |
@@ -135,6 +147,7 @@ Each element is one skill in the demand closure, sorted by descending `gap`.
 | `weight`            | number  | Importance weight in fit/gap (currently default `1.0` for all).                     |
 | `d_star`            | number  | Demand closure strength—how much the role needs this skill.                         |
 | `s_star`            | number  | Supply closure mastery—how much the profile implies this skill.                     |
+| `s_star_baseline`   | number  | Mean `s_star` of degree-matched random profiles (chance level for this skill).      |
 | `s_explicit`        | number  | Direct evidence: `1.0` if evidence-backed, `0.0` if held-only or absent.            |
 | `ppr`               | number  | Personalized PageRank score (proximity to held skills in the demand neighborhood).  |
 | `gap`               | number  | Weighted deficit contributing to `meta.fit`.                                        |

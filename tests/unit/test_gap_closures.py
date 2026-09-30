@@ -83,6 +83,16 @@ def test_assign_zone_partitions() -> None:
     assert zones.assign_zone("nowhere", s_explicit, s_star, ppr, rho)[0] == "true_gap"
 
 
+def test_assign_zone_discounts_supply_any_profile_gets() -> None:
+    s_star = {"implied": 0.6}
+    assert zones.assign_zone("implied", {}, s_star, {}, 1.0)[0] == "latent"
+    # Random profiles already reach 0.5 here, so 0.6 is only 20% above chance.
+    zone = zones.assign_zone(
+        "implied", {}, s_star, {}, 1.0, s_star_baseline={"implied": 0.5}
+    )[0]
+    assert zone == "true_gap"
+
+
 def test_p_has_monotonic_in_supply() -> None:
     assert p_has(0.9, 0.0) > p_has(0.1, 0.0)
 
@@ -151,6 +161,14 @@ def test_compute_gaps_node_builds_full_payload(monkeypatch) -> None:
     assert "fit_if_all_latent" in gaps["meta"]
     assert "fit_uplift_latent" in gaps["meta"]
     assert gaps["meta"]["fit_if_all_latent"] >= gaps["meta"]["fit"]
+    meta = gaps["meta"]
+    assert 0.0 <= meta["fit_baseline"] <= 1.0
+    assert 0.0 <= meta["fit_normalized"] <= 1.0
+    assert meta["fit_if_all_latent_normalized"] >= meta["fit_normalized"]
+    assert meta["fit_explicit"] <= meta["fit"]
+    assert meta["ontology"]["edge_count"] == len(EDGES)
+    assert gaps["review"]["headline"].startswith(f"{round(meta['fit_normalized'] * 100)}% fit")
+    assert all("s_star_baseline" in row for row in gaps["skills"])
 
     zones_seen = {row["skill_id"]: row["zone"] for row in gaps["skills"]}
     by_id = {row["skill_id"]: row for row in gaps["skills"]}

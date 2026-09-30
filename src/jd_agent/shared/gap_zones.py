@@ -18,6 +18,7 @@ from networkx.algorithms.community import louvain_communities
 from jd_agent.shared.skill_closures import (
     Edge,
     IsDomain,
+    SupplyFanout,
     supply_closure_noisy_or,
 )
 
@@ -58,6 +59,15 @@ def compute_gaps(
     return gaps, fit
 
 
+def chance_corrected_fit(value: float, baseline: float) -> float:
+    """Share of the headroom above ``baseline`` that ``value`` reaches, in ``[0, 1]``."""
+
+    headroom = 1.0 - baseline
+    if headroom <= 1e-9:
+        return 0.0
+    return min(1.0, max(0.0, (value - baseline) / headroom))
+
+
 def fit_if_latent_skills_confirmed(
     d_star: dict[str, float],
     s_seed: dict[str, float],
@@ -65,6 +75,8 @@ def fit_if_latent_skills_confirmed(
     edges: list[Edge],
     is_domain: IsDomain,
     weights: dict[str, float],
+    *,
+    fanout: SupplyFanout | None = None,
 ) -> float:
     """Counterfactual fit if every latent skill were confirmed at full mastery.
 
@@ -73,13 +85,15 @@ def fit_if_latent_skills_confirmed(
     """
     if not latent_ids:
         _, fit = compute_gaps(
-            d_star, supply_closure_noisy_or(s_seed, edges, is_domain), weights
+            d_star,
+            supply_closure_noisy_or(s_seed, edges, is_domain, fanout=fanout),
+            weights,
         )
         return fit
     augmented = dict(s_seed)
     for sid in latent_ids:
         augmented[sid] = 1.0
-    s_star_aug = supply_closure_noisy_or(augmented, edges, is_domain)
+    s_star_aug = supply_closure_noisy_or(augmented, edges, is_domain, fanout=fanout)
     _, fit = compute_gaps(d_star, s_star_aug, weights)
     return fit
 
@@ -147,10 +161,18 @@ def assign_zone(
     s_star: dict[str, float],
     ppr: dict[str, float],
     rho: float,
+    s_star_baseline: dict[str, float] | None = None,
 ) -> tuple[str, str]:
-    """Return ``(zone, latent_kind)``; latent_kind ∈ {'', 'implied', 'adjacent'}."""
+    """Return ``(zone, latent_kind)``; latent_kind ∈ {'', 'implied', 'adjacent'}.
+
+    With ``s_star_baseline`` (mean ``s*`` of degree-matched random profiles),
+    "implied" compares the chance-corrected ``s*`` to ``LATENT_DELTA``, so a
+    skill the graph credits to almost any profile is not latent.
+    """
     s_v = s_explicit.get(skill_id, 0.0)
     s_star_v = s_star.get(skill_id, 0.0)
+    if s_star_baseline is not None:
+        s_star_v = chance_corrected_fit(s_star_v, s_star_baseline.get(skill_id, 0.0))
     ppr_v = ppr.get(skill_id, 0.0)
     if s_v > 0:
         return ZONE_CONFIRMED, ""

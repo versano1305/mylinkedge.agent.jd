@@ -194,11 +194,16 @@ CALL {{
 CALL {{
     WITH p
     OPTIONAL MATCH (p)-[:{_HAD_EXPERIENCE}]->(exp:{_ExperienceEvent})
+    // Collapse multi-valued header edges (position/company/industry/location)
+    // before nested collects — otherwise cartesian rows duplicate each exp.
     OPTIONAL MATCH (exp)-[:{_HAS_POSITION}]->(pos:{_Position})
+    WITH exp, head(collect(pos)) AS pos
     OPTIONAL MATCH (exp)-[:{_AT_COMPANY}]->(co:{_Company})
+    WITH exp, pos, head(collect(co)) AS co
     OPTIONAL MATCH (co)-[:{_IN_INDUSTRY}]->(ind:{_Industry})
+    WITH exp, pos, co, head(collect(ind)) AS ind
     OPTIONAL MATCH (exp)-[:{_LOCATED_IN_exp}]->(exploc:{_Location})
-    WITH exp, pos, co, ind, exploc
+    WITH exp, pos, co, ind, head(collect(exploc)) AS exploc
 
     // Collect USES_SKILL edges before any multi-valued OPTIONAL MATCH
     OPTIONAL MATCH (exp)-[r_sk:{_USES_SKILL_exp}]->(sk:{_Skill})
@@ -654,10 +659,17 @@ def fetch_candidate_dossier(
 
     # ── Instances (experiences + sub-nodes + education + volunteer) ───────────
     instances: list[Instance] = []
+    seen_experience_ids: set[str] = set()
 
     for exp_row in (row.get("experiences") or []):
-        if isinstance(exp_row, dict):
-            instances.extend(_exp_instances(exp_row))
+        if not isinstance(exp_row, dict):
+            continue
+        exp_id = str(exp_row.get("node_id") or "")
+        if exp_id and exp_id in seen_experience_ids:
+            continue
+        if exp_id:
+            seen_experience_ids.add(exp_id)
+        instances.extend(_exp_instances(exp_row))
 
     raw_educations: list[dict[str, Any]] = []
     for edu_row in (row.get("educations") or []):

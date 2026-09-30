@@ -16,6 +16,13 @@ from langchain_core.runnables import RunnableConfig
 
 from jd_agent.graphs.gap_collect.state import GapCollectState
 from jd_agent.integrations.skills_graph import get_skills_graph
+from jd_agent.shared.fit_baseline import (
+    DegreeMatchedSampler,
+    chance_corrected_fit,
+    explicit_fit,
+    ontology_fingerprint,
+    profile_baseline,
+)
 from jd_agent.shared.gap_zones import (
     DEFAULT_WEIGHT,
     GAP_P,
@@ -36,7 +43,9 @@ from jd_agent.shared.skill_closures import (
     make_is_domain,
     scc_warn,
     supply_closure_noisy_or,
+    supply_fanout,
 )
+from jd_agent.shared.supply_edge_prune import prune_supply_edges
 
 _UNMET_ZONES = frozenset({ZONE_LATENT, ZONE_TRUE_GAP})
 
@@ -99,13 +108,22 @@ def compute_gaps_node(
     s_seed = {sid: 1.0 for sid in evidence_in_graph}
     if not s_seed and held_ids:
         s_seed = {sid: 1.0 for sid in held_ids}
-    s_star = supply_closure_noisy_or(s_seed, edges, is_domain)
+    fanout = supply_fanout(edges, is_domain)
+    s_star = supply_closure_noisy_or(s_seed, edges, is_domain, fanout=fanout)
 
     weights = {sid: DEFAULT_WEIGHT for sid in jd_ids}
     for sid in d_star:
         weights.setdefault(sid, DEFAULT_WEIGHT)
 
     gaps_map, fit = compute_gaps(d_star, s_star, weights)
+    supply_edges = prune_supply_edges(edges, d_star, is_domain)
+    sampler = DegreeMatchedSampler(
+        edges, (sid for sid in skill_meta if not is_domain(sid))
+    )
+    baseline = profile_baseline(
+        d_star, weights, s_seed, supply_edges, is_domain, sampler, fanout=fanout
+    )
+    fit_normalized = chance_corrected_fit(fit, baseline.mean)
     ppr, rho = personalized_pagerank(
         edges, d_star, held_ids or evidence_in_graph, is_domain
     )
@@ -114,7 +132,9 @@ def compute_gaps_node(
     skills_rows: list[dict[str, Any]] = []
     zone_of: dict[str, str] = {}
     for sid in sorted(d_star, key=lambda k: -gaps_map.get(k, 0.0)):
-        zone, kind = assign_zone(sid, s_explicit, s_star, ppr, rho)
+        zone, kind = assign_zone(
+            sid, s_explicit, s_star, ppr, rho, s_star_baseline=baseline.s_star_mean
+        )
         zone_of[sid] = zone
         meta = skill_meta.get(sid, {})
         name = meta.get("name") or jd_meta_by_id.get(sid, {}).get("name") or sid
@@ -138,6 +158,7 @@ def compute_gaps_node(
                 "weight": round(float(weights.get(sid, DEFAULT_WEIGHT)), 4),
                 "d_star": round(float(d_star.get(sid, 0.0)), 4),
                 "s_star": round(sv, 4),
+                "s_star_baseline": round(float(baseline.s_star_mean.get(sid, 0.0)), 4),
                 "s_explicit": float(s_explicit.get(sid, 0.0)),
                 "ppr": round(float(ppr.get(sid, 0.0)), 6),
                 "gap": round(float(gaps_map.get(sid, 0.0)), 4),
@@ -164,9 +185,26 @@ def compute_gaps_node(
 
     latent_ids = {sid for sid, z in zone_of.items() if z == ZONE_LATENT}
     fit_if_all_latent = fit_if_latent_skills_confirmed(
-        d_star, s_seed, latent_ids, edges, is_domain, weights
+        d_star, s_seed, latent_ids, edges, is_domain, weights, fanout=fanout
     )
     fit_uplift_latent = max(0.0, fit_if_all_latent - fit)
+    # A profile with more seeds is compared to random profiles of that size.
+    latent_baseline = (
+        profile_baseline(
+            d_star,
+            weights,
+            {**s_seed, **{sid: 1.0 for sid in latent_ids}},
+            supply_edges,
+            is_domain,
+            sampler,
+            fanout=fanout,
+        )
+        if latent_ids
+        else baseline
+    )
+    fit_if_all_latent_normalized = max(
+        fit_normalized, chance_corrected_fit(fit_if_all_latent, latent_baseline.mean)
+    )
 
     candidates = _build_interview_candidates(
         skills_rows, edges, held_ids, skill_meta, theme_of
@@ -178,6 +216,15 @@ def compute_gaps_node(
             "fit": round(fit, 4),
             "fit_if_all_latent": round(fit_if_all_latent, 4),
             "fit_uplift_latent": round(fit_uplift_latent, 4),
+            "fit_explicit": round(explicit_fit(d_star, weights, s_seed), 4),
+            "fit_baseline": round(baseline.mean, 4),
+            "fit_baseline_sd": round(baseline.sd, 4),
+            "fit_normalized": round(fit_normalized, 4),
+            "fit_if_all_latent_normalized": round(fit_if_all_latent_normalized, 4),
+            "fit_uplift_latent_normalized": round(
+                max(0.0, fit_if_all_latent_normalized - fit_normalized), 4
+            ),
+            "ontology": ontology_fingerprint(edges),
             "zone_counts": counts,
             "jd_skill_count": len(jd_raw_skills),
             "resolved_count": len(jd_ids),
@@ -190,9 +237,9 @@ def compute_gaps_node(
             },
         },
         "review": {
-            "headline": _headline(fit, counts),
+            "headline": _headline(fit_normalized, counts),
             "latent_fit": _latent_fit_review(
-                fit, fit_if_all_latent, counts["latent"]
+                fit_normalized, fit_if_all_latent_normalized, counts["latent"]
             ),
             "critical_path": crit_sentence,
             "themes": themes,

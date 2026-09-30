@@ -10,6 +10,7 @@ from jd_agent.graphs.resume_generate.constants import DEFAULT_TEMPLATE
 from jd_agent.graphs.resume_generate.nodes.allocate.pipeline import run_allocation
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 from jd_agent.integrations.skills_graph import get_skills_graph
+from jd_agent.shared.fit_baseline import DegreeMatchedSampler
 from jd_agent.shared.skill_closures import make_is_domain
 
 
@@ -45,5 +46,8 @@ def allocate(state: ResumeGenerateState, config: RunnableConfig) -> dict[str, An
         jd_context,
         edges,
         is_domain,
+        sampler=DegreeMatchedSampler(
+            edges, (sid for sid in skill_meta if not is_domain(sid))
+        ),
     )
     return {"allocation": allocation.model_dump()}

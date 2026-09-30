@@ -148,3 +148,6 @@ def test_allocate_node_integration(monkeypatch) -> None:
     assert allocation.instance_order == ["exp-1"]
     assert allocation.selected["exp-1"] == ["a1"]
     assert allocation.resume_fit > 0.0
+    assert allocation.resume_fit_baseline is not None
+    assert allocation.resume_fit_normalized is not None
+    assert 0.0 <= allocation.resume_fit_normalized <= 1.0

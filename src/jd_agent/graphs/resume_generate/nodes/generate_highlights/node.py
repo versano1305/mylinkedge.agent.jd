@@ -43,7 +43,14 @@ def dispatch_highlights_after_verify(
 def generate_highlights(
     state: ResumeGenerateState, config: RunnableConfig
 ) -> dict[str, Any]:
-    """Rewrite one instance brief into bullets; merges into ``generated`` via reducer."""
+    """Rewrite one instance brief into bullets; merges into ``generated`` via reducer.
+
+    Pass LangGraph ``config`` through so nested ``create_agent`` / LLM runs stay on the
+    parent graph trace (LangSmith), including parallel ``Send`` branches.
+
+    Sync (not async): LangGraph Studio / sync ``invoke`` paths call Send workers via
+    ``invoke``; async-only nodes raise TypeError there.
+    """
     raw_brief = state.get("brief")
     if not isinstance(raw_brief, dict):
         raise ValueError("brief is required for generate_highlights")
