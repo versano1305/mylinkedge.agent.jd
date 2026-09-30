@@ -38,9 +38,15 @@ def is_selectable_atom(atom: dict[str, Any]) -> bool:
 
 
 def experience_instances(dossier: dict[str, Any]) -> list[Instance]:
-    """ExperienceEvent rows from the dossier, reverse-chronological."""
+    """ExperienceEvent rows from the dossier, reverse-chronological.
+
+    Dedupes by ``instance_id`` so a duplicated dossier row (e.g. Cypher
+    cartesian product on position/company) cannot inflate allocation order
+    or highlight Send fan-out.
+    """
 
     rows: list[Instance] = []
+    seen: set[str] = set()
     for raw in dossier.get("instances") or []:
         if not isinstance(raw, dict):
             continue
@@ -49,6 +55,9 @@ def experience_instances(dossier: dict[str, Any]) -> list[Instance]:
             continue
         if inst.node_label and inst.node_label != "ExperienceEvent":
             continue
+        if inst.instance_id in seen:
+            continue
+        seen.add(inst.instance_id)
         rows.append(inst)
 
     def sort_key(item: Instance) -> tuple[int, int, int, str]:

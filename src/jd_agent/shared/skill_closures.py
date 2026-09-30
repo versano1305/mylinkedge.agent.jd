@@ -39,21 +39,21 @@ SUPPLY_HOPS = 3
 DOMAIN_SKILL_TYPE = "Domain"
 
 # Density damping, tuned on the pre/post skill-expansion graphs.
-SUPPLY_FANOUT_REF = 5
+SUPPLY_FANOUT_REF = 3
 SUPPLY_FANOUT_BETA = 0.5
-SUPPLY_TOP_K = 3
+SUPPLY_TOP_K = 2
 
 # Calibrated mastery-propagation coefficients (edge_type, direction) → α.
 # Forward = owning the source implies the target; backward = the reverse.
 ALPHA: dict[tuple[str, str], float] = {
     ("REQUIRES", "fwd"): 0.90,
     ("REQUIRES", "bwd"): 0.00,
-    ("USES", "fwd"): 0.85,
+    ("USES", "fwd"): 0.80,
     ("USES", "bwd"): 0.05,
-    ("ENABLES", "fwd"): 0.80,
+    ("ENABLES", "fwd"): 0.70,
     ("ENABLES", "bwd"): 0.25,
-    ("PART_OF", "fwd"): 0.35,
-    ("PART_OF", "bwd"): 0.55,
+    ("PART_OF", "fwd"): 0.1, # Set to 0.1 Since all skills started with PART_OF and not been evaluated yet. 
+    ("PART_OF", "bwd"): 0.1,
 }
 
 IsDomain = Callable[[str], bool]

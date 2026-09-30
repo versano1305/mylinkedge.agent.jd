@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Mapping
 from typing import Any
 
@@ -53,4 +54,8 @@ class GraphInvoker:
 def _run_config(thread_id: str | None) -> dict[str, Any] | None:
     if not thread_id:
         return None
-    return {"configurable": {"thread_id": thread_id, "run_id": thread_id}}
+    max_concurrency = int(os.getenv("LANGGRAPH_MAX_CONCURRENCY", "32"))
+    return {
+        "configurable": {"thread_id": thread_id, "run_id": thread_id},
+        "max_concurrency": max_concurrency,
+    }

@@ -23,7 +23,7 @@ def build_structured_agent(
     temperature: float = 0.2,
 ) -> Any:
     """Create a tool-less agent that returns ``response_format`` as structured output."""
-    model_name = (model or os.getenv("RESUME_LLM_MODEL") or "gpt-4o-mini").strip()
+    model_name = (model or os.getenv("RESUME_LLM_MODEL") or "gpt-4o").strip()
     if model_name.startswith("openai:"):
         model_name = model_name.split(":", 1)[1]
 
@@ -42,6 +42,18 @@ def build_structured_agent(
     )
 
 
+def _coerce_structured_response(
+    result: Any,
+    response_format: type[T],
+) -> T:
+    structured = result.get("structured_response") if isinstance(result, dict) else None
+    if structured is None:
+        raise ValueError("structured agent did not return structured_response")
+    if isinstance(structured, response_format):
+        return structured
+    return response_format.model_validate(structured)
+
+
 def invoke_structured_agent(
     agent: Any,
     user_message: str,
@@ -51,11 +63,20 @@ def invoke_structured_agent(
     """Run an agent and coerce ``structured_response`` to ``response_format``."""
     result = agent.invoke(
         {"messages": [HumanMessage(content=user_message)]},
-        config,
+        config=config,
     )
-    structured = result.get("structured_response") if isinstance(result, dict) else None
-    if structured is None:
-        raise ValueError("structured agent did not return structured_response")
-    if isinstance(structured, response_format):
-        return structured
-    return response_format.model_validate(structured)
+    return _coerce_structured_response(result, response_format)
+
+
+async def ainvoke_structured_agent(
+    agent: Any,
+    user_message: str,
+    response_format: type[T],
+    config: RunnableConfig | None = None,
+) -> T:
+    """Async variant; use from LangGraph async nodes so nested LLM runs stay on the trace."""
+    result = await agent.ainvoke(
+        {"messages": [HumanMessage(content=user_message)]},
+        config=config,
+    )
+    return _coerce_structured_response(result, response_format)

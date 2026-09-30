@@ -16,19 +16,26 @@ def is_generatable_brief(raw: dict[str, Any]) -> bool:
 
 
 def generatable_instance_ids(briefs: dict[str, Any]) -> list[str]:
-    """Ordered instance ids that need highlight generation."""
+    """Ordered instance ids that need highlight generation (unique)."""
     instances = briefs.get("instances")
     if not isinstance(instances, dict):
         return []
     ordered = briefs.get("generatable_instance_ids")
     if isinstance(ordered, list) and ordered:
-        return [
-            str(iid)
-            for iid in ordered
-            if str(iid) in instances
-            and isinstance(instances[str(iid)], dict)
-            and is_generatable_brief(instances[str(iid)])
-        ]
+        seen: set[str] = set()
+        out: list[str] = []
+        for iid in ordered:
+            key = str(iid)
+            if key in seen:
+                continue
+            if (
+                key in instances
+                and isinstance(instances[key], dict)
+                and is_generatable_brief(instances[key])
+            ):
+                seen.add(key)
+                out.append(key)
+        return out
     return [
         iid
         for iid, raw in instances.items()
