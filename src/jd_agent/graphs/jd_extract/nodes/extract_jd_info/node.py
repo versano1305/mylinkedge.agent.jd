@@ -6,6 +6,7 @@ from typing import Any
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.types import Overwrite, Send
+from mylinkedge_agent_tools.langgraph_streaming.annotations import emit_progress, thinking
 from mylinkedge_agent_tools.skill_matching import relevant_skills_from_text
 
 from jd_agent.graphs.jd_extract.nodes.extract_jd_info.models import (
@@ -25,6 +26,7 @@ from jd_agent.integrations.supabase.prompt_config_repository import (
 )
 
 
+@thinking("Preparing skill extraction sections…")
 def prepare_jd_info_sections(
     state: JdExtractState,
     config: RunnableConfig,
@@ -96,6 +98,7 @@ def extract_section_skills(
     item = (
         raw if isinstance(raw, SectionWorkItem) else SectionWorkItem.model_validate(raw)
     )
+    emit_progress("thinking", f"Extracting skills from section `{item.section_key}`…")
 
     text = item.section_content.strip()
     skills: list[dict[str, Any]] = []
@@ -114,6 +117,7 @@ def _is_missing(value: Any) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
 
 
+@thinking("Enriching extracted skills…")
 def initialize_missing_skill_fields(
     state: JdExtractState,
     config: RunnableConfig,
@@ -155,6 +159,7 @@ def initialize_missing_skill_fields(
     return {"section_skill_results": Overwrite(enriched_results)}
 
 
+@thinking("Saving extracted skills…")
 def save_jd_skills(
     state: JdExtractState,
     config: RunnableConfig,

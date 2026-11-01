@@ -15,6 +15,22 @@
       "python": "${workspaceFolder}/.venv/bin/python",
       "console": "integratedTerminal",
       "justMyCode": true
+    },
+    {
+      "name": "jd-agent: gRPC container (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "jd_agent.container.cli",
+      "args": ["--container", "grpc"],
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/src",
+        "GRPC_PORT": "5006"
+      },
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": true
     }
   ]
 }

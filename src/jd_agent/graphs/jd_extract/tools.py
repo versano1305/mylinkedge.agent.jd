@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from langchain_core.tools import tool
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.integrations.linkedin_jobs_scraper import (
     LinkedInJobsScraperClient,
@@ -39,6 +40,7 @@ def fetch_job_posting_impl(url: str, source: str = "linkedin") -> JobPosting:
 
 
 @tool
+@thinking("Fetching job posting…")
 def fetch_job_posting(url: str, source: str = "linkedin") -> JobPosting:
     """Fetch a structured job posting from a job-board URL.
 
@@ -53,6 +55,7 @@ _MOCK_COMPANY_ID = "company_mock_0001"
 
 
 @tool
+@thinking("Looking up company…")
 def resolve_company_id(company_name: str) -> str:
     """Resolve a company name to an existing company DB record ID.
 

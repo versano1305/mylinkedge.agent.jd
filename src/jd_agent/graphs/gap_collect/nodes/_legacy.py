@@ -8,11 +8,8 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
-from mylinkedge_agent_tools.event_hub import (
-    JdGapAnalysisFinish,
-    JdGapAnalysisStarted,
-    ProcessEventPublisher,
-)
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
+from mylinkedge_agent_tools.langgraph_streaming.custom_events import emit_finish_interview
 
 from jd_agent.graphs.gap_collect.state import GapCollectState
 from jd_agent.integrations.supabase import (
@@ -21,6 +18,7 @@ from jd_agent.integrations.supabase import (
 from jd_agent.integrations.supabase.client import client_from_env
 
 
+@thinking("Loading resume-builder session…")
 def load_session(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:
@@ -50,26 +48,19 @@ def load_session(
     }
 
 
+@thinking("Starting gap analysis…")
 def mark_analyzing(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:
-    """Mark gap analysis in progress and publish ``process.jd-gap-analysis/started``."""
+    """Mark gap analysis in progress on the session."""
+    _ = config
     session_id = str(state.get("session_id") or "").strip()
     client = client_from_env()
     urb_repo.mark_gap_analysis_in_progress(client, session_id)
-    job_description_id = str(state.get("job_description_id") or "")
-    return _publish(
-        state,
-        JdGapAnalysisStarted(
-            job_id=job_description_id,
-            job_description_id=job_description_id,
-            trace_id=_trace_id(config),
-        ),
-        error_label="jd-gap-analysis started",
-        result={"gap_status": "analyzing"},
-    )
+    return {"gap_status": "analyzing"}
 
 
+@thinking("Saving gap analysis…")
 def save_gaps(state: GapCollectState, config: RunnableConfig) -> dict[str, Any]:
     """Persist the gaps jsonb and advance the session to the gap-interview step."""
     _ = config
@@ -83,44 +74,9 @@ def save_gaps(state: GapCollectState, config: RunnableConfig) -> dict[str, Any]:
     return {"session": updated}
 
 
+@thinking("Finishing gap analysis…")
 def mark_done(state: GapCollectState, config: RunnableConfig) -> dict[str, Any]:
-    """Publish ``process.jd-gap-analysis/finish`` and mark the run done.
-
-    Gaps are already persisted by ``save_gaps``. The library finish payload is
-    empty; a transport failure is a soft error rather than a failed collection.
-    """
-    job_description_id = str(state.get("job_description_id") or "")
-    return _publish(
-        state,
-        JdGapAnalysisFinish(
-            job_id=job_description_id,
-            job_description_id=job_description_id,
-            trace_id=_trace_id(config),
-        ),
-        error_label="jd-gap-analysis finish",
-        result={"gap_status": "done"},
-    )
-
-
-def _publish(
-    state: GapCollectState,
-    event: JdGapAnalysisStarted | JdGapAnalysisFinish,
-    *,
-    error_label: str,
-    result: dict[str, Any],
-) -> dict[str, Any]:
-    errors = list(state.get("errors") or [])
-    try:
-        ProcessEventPublisher().publish(event)
-    except Exception as exc:  # noqa: BLE001 - event transport is best-effort here
-        errors.append(f"{error_label} publish failed: {type(exc).__name__}")
-    return {**result, "errors": errors}
-
-
-def _trace_id(config: RunnableConfig) -> str | None:
-    configurable = (config or {}).get("configurable") or {}
-    raw = configurable.get("thread_id") or configurable.get("run_id")
-    if raw is None:
-        return None
-    text = str(raw).strip()
-    return text or None
+    """Signal completion to stream clients after gaps are persisted."""
+    _ = config
+    emit_finish_interview()
+    return {"gap_status": "done"}

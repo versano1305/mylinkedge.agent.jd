@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from unittest.mock import MagicMock, patch
-
 import pytest
 from conftest import JD_ID, SESSION_ID, USER_ID, FakeUserResumeBuilders, make_session
 from mylinkedge_agent_tools.taxonomy import TaxonomyGraph, TaxonomyNode
@@ -79,22 +77,10 @@ def test_loads_session_scoped_by_owner(
 def test_mark_generating_updates_only_this_session(
     fake_urb: FakeUserResumeBuilders,
 ) -> None:
-    mock_publisher = MagicMock()
-    with patch(
-        "jd_agent.graphs.resume_generate.nodes.mark_generating.node.ProcessEventPublisher",
-        return_value=mock_publisher,
-    ):
-        result = mark_generating(
-            {"session_id": SESSION_ID},
-            {"configurable": {"thread_id": "thread-3"}},
-        )
+    result = mark_generating(
+        {"session_id": SESSION_ID},
+        {"configurable": {"thread_id": "thread-3"}},
+    )
 
     assert fake_urb.status_updates == [(SESSION_ID, "template_in_progress")]
     assert result["session"].status == "template_in_progress"
-    assert result["errors"] == []
-    mock_publisher.publish.assert_called_once()
-    event = mock_publisher.publish.call_args.args[0]
-    assert event.type == "process.resume-generate/started"
-    assert event.job_id == JD_ID
-    assert event.trace_id == "thread-3"
-    assert event.payload.model_dump() == {}

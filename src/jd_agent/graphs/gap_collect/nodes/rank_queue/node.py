@@ -5,11 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.graphs.gap_collect.nodes.rank_queue.ranking import rank_candidates
 from jd_agent.graphs.gap_collect.state import GapCollectState
 
 
+@thinking("Ranking interview queue…")
 def rank_queue_node(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:

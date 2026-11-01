@@ -13,6 +13,7 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.graphs.gap_collect.state import GapCollectState
 from jd_agent.integrations.skills_graph import get_skills_graph
@@ -69,6 +70,7 @@ _PROBE_HINTS = {
 }
 
 
+@thinking("Computing skill gaps…")
 def compute_gaps_node(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:

@@ -5,11 +5,13 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.graphs.gap_collect.state import GapCollectState
 from jd_agent.integrations.skills_graph import fetch_user_skill_ids
 
 
+@thinking("Loading your skills…")
 def load_user_skills(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:

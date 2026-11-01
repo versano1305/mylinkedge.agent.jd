@@ -6,6 +6,7 @@ import math
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.graphs.gap_collect.state import GapCollectState
 from jd_agent.integrations.skills_graph import fetch_skills_by_ids
@@ -14,6 +15,7 @@ from jd_agent.integrations.supabase.jd_repository import JobDescription
 _SKILL_FIELDS = ("id", "name", "skillType")
 
 
+@thinking("Loading JD skill targets…")
 def load_jd_targets(state: GapCollectState, config: RunnableConfig) -> dict[str, Any]:
     """Build ``{id, name, skillType, requirement_level}`` rows for JD skill ids.
 

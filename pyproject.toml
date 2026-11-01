@@ -21,7 +21,12 @@ dependencies = [
     "networkx>=3.0",
     "scipy>=1.11",
     "mylinkedge-agent-tools-event-hub",
+    "mylinkedge-agent-tools-langgraph-streaming[server]",
     "mylinkedge-agent-tools-postgres",
+    "protobuf>=7.35.1",
+    "grpcio>=1.84.0",
+    "pymongo>=4.10.0",
+    "langgraph-checkpoint-mongodb>=0.5.0",
 ]
 
 [project.optional-dependencies]
@@ -55,10 +60,14 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 
+[tool.uv]
+override-dependencies = ["protobuf>=7.35.1"]
+
 [tool.uv.sources]
 en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
 mylinkedge-agent-tools-skill-matching = { path = "../mylinkedge.agent.tools/projects/skill-matching", editable = true }
 mylinkedge-agent-tools-skills = { path = "../mylinkedge.agent.tools/projects/skills-graph", editable = true }
 mylinkedge-agent-tools-event-hub = { path = "../mylinkedge.agent.tools/projects/event-hub", editable = true }
+mylinkedge-agent-tools-langgraph-streaming = { path = "../mylinkedge.agent.tools/projects/langgraph-streaming", editable = true }
 mylinkedge-agent-tools-taxonomy = { path = "../mylinkedge.agent.tools/projects/taxonomy-graph", editable = true }
 mylinkedge-agent-tools-postgres = { path = "../mylinkedge.agent.tools/projects/postgres", editable = true }

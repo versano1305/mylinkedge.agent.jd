@@ -5,11 +5,10 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from langchain_core.runnables import RunnableConfig
-from mylinkedge_agent_tools.event_hub import (
-    JdExtractionFinish,
-    JdExtractionFinishPayload,
-    JdExtractionStarted,
-    ProcessEventPublisher,
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
+from mylinkedge_agent_tools.langgraph_streaming.custom_events import (
+    emit_client_event,
+    emit_finish_interview,
 )
 
 from jd_agent.graphs.jd_extract.state import JdExtractState
@@ -34,11 +33,13 @@ def _require_jd(state: JdExtractState) -> JobDescription:
     return jd
 
 
+@thinking("Loading job description…")
 def load_jd(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
     """Load the existing JD row and validate origin fields."""
+    _ = config
     jd_id = str(state.get("jd_id") or "").strip()
     if not jd_id:
         raise ValueError("jd_id is required")
@@ -72,24 +73,20 @@ def route_by_origin_type(
     return "prepare_jd_text"
 
 
+@thinking("Starting JD extraction…")
 def mark_extracting(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
-    """Mark the JD as ``extracting`` and publish ``process.jd-extraction/started``."""
+    """Mark the JD as ``extracting``."""
+    _ = config
     jd_id = str(state["jd_id"])
     client = client_from_env()
     jd_repo.update_extraction_status(client, jd_id, "extracting")
-    ProcessEventPublisher().publish(
-        JdExtractionStarted(
-            job_id=jd_id,
-            job_description_id=jd_id,
-            trace_id=_trace_id(config),
-        )
-    )
     return {"extraction_status": "extracting"}
 
 
+@thinking("Fetching job posting from URL…")
 def fetch_jd(state: JdExtractState) -> dict[str, Any]:
     """Fetch JD content from a job-board URL via the retrieval tool.
 
@@ -120,6 +117,7 @@ def fetch_jd(state: JdExtractState) -> dict[str, Any]:
     return updates
 
 
+@thinking("Resolving company…")
 def resolve_company(state: JdExtractState) -> dict[str, Any]:
     """Resolve ``jd.company_name`` to an existing ``company_id`` and persist both.
 
@@ -147,15 +145,13 @@ def resolve_company(state: JdExtractState) -> dict[str, Any]:
     }
 
 
+@thinking("Finishing JD extraction…")
 def mark_done(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
-    """Mark the JD record as ``done`` and publish ``process.jd-extraction/finish``.
-
-    The finish payload includes ``skills`` and ``sections`` so downstream
-    consumers can persist the extraction result.
-    """
+    """Mark the JD record as ``done`` and signal completion to stream clients."""
+    _ = config
     jd_id = state["jd_id"]
     client = client_from_env()
     jd_repo.update_extraction_status(client, jd_id, "done")
@@ -163,24 +159,13 @@ def mark_done(
     if row is None:
         raise ValueError(f"No job_description row for id={jd_id}")
 
-    ProcessEventPublisher().publish(
-        JdExtractionFinish(
-            job_id=str(jd_id),
-            job_description_id=str(jd_id),
-            trace_id=_trace_id(config),
-            payload=JdExtractionFinishPayload(
-                skills=[skill.model_dump() for skill in row.skills],
-                sections=dict(row.sections),
-            ),
-        )
+    emit_client_event(
+        "jd_extraction_finish",
+        {
+            "job_description_id": str(jd_id),
+            "skills": [skill.model_dump() for skill in row.skills],
+            "sections": dict(row.sections),
+        },
     )
+    emit_finish_interview()
     return {"extraction_status": "done"}
-
-
-def _trace_id(config: RunnableConfig) -> str | None:
-    configurable = (config or {}).get("configurable") or {}
-    raw = configurable.get("thread_id") or configurable.get("run_id")
-    if raw is None:
-        return None
-    text = str(raw).strip()
-    return text or None

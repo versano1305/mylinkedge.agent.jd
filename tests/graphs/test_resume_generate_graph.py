@@ -128,14 +128,6 @@ def test_resume_generate_smoke_minimum_invoke_returns_schema_valid_resume(
         "generate_summary_llm",
         lambda *args, **kwargs: SummaryResult(),
     )
-    mark_generating_node = importlib.import_module(
-        "jd_agent.graphs.resume_generate.nodes.mark_generating.node"
-    )
-    mark_done_node = importlib.import_module(
-        "jd_agent.graphs.resume_generate.nodes.mark_done.node"
-    )
-    monkeypatch.setattr(mark_generating_node, "ProcessEventPublisher", MagicMock)
-    monkeypatch.setattr(mark_done_node, "ProcessEventPublisher", MagicMock)
     with MockTaxonomyTypes(_TAXONOMY):
         result = asyncio.run(graph.ainvoke({"session_id": SESSION_ID}))
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 
 from jd_agent.graphs.jd_extract.nodes.save_jd_sections.agent import invoke_section_parser
 from jd_agent.graphs.jd_extract.nodes.save_jd_sections.mapping import (
@@ -23,6 +24,7 @@ from jd_agent.integrations.supabase.client import client_from_env
 from jd_agent.integrations.supabase.prompt_config_repository import list_by_type
 
 
+@thinking("Structuring JD into sections…")
 def save_jd_sections(
     state: JdExtractState,
     config: RunnableConfig,

@@ -3,8 +3,7 @@
 Flow
 ----
 1. ``load_jd`` loads the existing JD row (``origin_jd``, ``origin_type``, …).
-2. ``mark_extracting`` sets ``extraction_status`` to ``extracting`` and publishes
-   ``process.jd-extraction/started``.
+2. ``mark_extracting`` sets ``extraction_status`` to ``extracting``.
 3. Route on ``jd.origin_type``:
    - URL types → ``fetch_jd`` → ``prepare_jd_text``
    - ``copy_paste`` → ``prepare_jd_text`` directly
@@ -17,8 +16,7 @@ Flow
    - ``initialize_missing_skill_fields`` applies temporary P-1 fallback fields
    - ``save_jd_skills`` merges results and writes ``job_description.skills``
 7. ``resolve_company`` resolves and persists ``company_id`` / ``company_name``.
-8. ``mark_done`` sets ``extraction_status`` to ``done`` and publishes
-   ``process.jd-extraction/finish`` with the job-description id.
+8. ``mark_done`` sets ``extraction_status`` to ``done`` and streams finish events.
 
 See ``docs/jd_extract_graph_plan.md`` for the agreed design and mocked
 boundaries.

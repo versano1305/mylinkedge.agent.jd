@@ -11,14 +11,13 @@ from jd_agent.integrations.supabase.jd_repository import (
 )
 
 
-def test_mark_done_updates_status_and_publishes_finish_event() -> None:
+def test_mark_done_updates_status_and_streams_finish() -> None:
     row = JobDescription(
         id="jd-42",
         skills=[JobDescriptionSkill(name="Python", source="taxonomy")],
         sections={"requirements": "3+ years Python"},
         extraction_status="done",
     )
-    mock_publisher = MagicMock()
     with (
         patch(
             "jd_agent.graphs.jd_extract.nodes._legacy.client_from_env",
@@ -32,9 +31,11 @@ def test_mark_done_updates_status_and_publishes_finish_event() -> None:
             return_value=row,
         ),
         patch(
-            "jd_agent.graphs.jd_extract.nodes._legacy.ProcessEventPublisher",
-            return_value=mock_publisher,
-        ),
+            "jd_agent.graphs.jd_extract.nodes._legacy.emit_client_event",
+        ) as mock_client_event,
+        patch(
+            "jd_agent.graphs.jd_extract.nodes._legacy.emit_finish_interview",
+        ) as mock_finish,
     ):
         result = mark_done(
             {"jd_id": "jd-42"},
@@ -47,13 +48,11 @@ def test_mark_done_updates_status_and_publishes_finish_event() -> None:
         "jd-42",
         "done",
     )
-    mock_publisher.publish.assert_called_once()
-    event = mock_publisher.publish.call_args.args[0]
-    assert event.type == "process.jd-extraction/finish"
-    assert event.job_id == "jd-42"
-    assert event.job_description_id == "jd-42"
-    assert event.trace_id == "thread-7"
-    assert event.payload.skills == [
+    mock_client_event.assert_called_once()
+    kind, payload = mock_client_event.call_args.args
+    assert kind == "jd_extraction_finish"
+    assert payload["job_description_id"] == "jd-42"
+    assert payload["skills"] == [
         {
             "id": None,
             "name": "Python",
@@ -61,11 +60,11 @@ def test_mark_done_updates_status_and_publishes_finish_event() -> None:
             "source": "taxonomy",
         }
     ]
-    assert event.payload.sections == {"requirements": "3+ years Python"}
+    assert payload["sections"] == {"requirements": "3+ years Python"}
+    mock_finish.assert_called_once()
 
 
-def test_mark_extracting_publishes_started_event() -> None:
-    mock_publisher = MagicMock()
+def test_mark_extracting_updates_status() -> None:
     with (
         patch(
             "jd_agent.graphs.jd_extract.nodes._legacy.client_from_env",
@@ -74,10 +73,6 @@ def test_mark_extracting_publishes_started_event() -> None:
         patch(
             "jd_agent.graphs.jd_extract.nodes._legacy.jd_repo.update_extraction_status",
         ) as mock_update,
-        patch(
-            "jd_agent.graphs.jd_extract.nodes._legacy.ProcessEventPublisher",
-            return_value=mock_publisher,
-        ),
     ):
         result = mark_extracting(
             {"jd_id": "jd-42"},
@@ -90,10 +85,3 @@ def test_mark_extracting_publishes_started_event() -> None:
         "jd-42",
         "extracting",
     )
-    mock_publisher.publish.assert_called_once()
-    event = mock_publisher.publish.call_args.args[0]
-    assert event.type == "process.jd-extraction/started"
-    assert event.job_id == "jd-42"
-    assert event.job_description_id == "jd-42"
-    assert event.trace_id == "thread-7"
-    assert event.payload.section is None

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
+
 from jd_agent.graphs.jd_extract.nodes.prepare_jd_text.text import resolve_plain_text
 from jd_agent.graphs.jd_extract.state import JdExtractState
 
 
+@thinking("Normalizing job description text…")
 def prepare_jd_text(state: JdExtractState) -> dict[str, Any]:
     """Normalize the input into plain-text ``jd_text``.
 
