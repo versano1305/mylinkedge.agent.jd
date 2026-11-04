@@ -16,6 +16,7 @@ from jd_agent.integrations.supabase import (
     user_resume_builder_repository as urb_repo,
 )
 from jd_agent.integrations.supabase.client import client_from_env
+from jd_agent.shared.jd_event_hub import publish_jd_gap_analysis_start_from_state
 
 
 @thinking("Loading resume-builder session…")
@@ -23,7 +24,6 @@ def load_session(
     state: GapCollectState, config: RunnableConfig
 ) -> dict[str, Any]:
     """Load the resume-builder session and its joined job description."""
-    _ = config
     session_id = str(state.get("session_id") or "").strip()
     if not session_id:
         raise ValueError("session_id is required")
@@ -33,6 +33,14 @@ def load_session(
     if loaded is None:
         raise ValueError(f"No user_resume_builder row for id={session_id}")
 
+    updates = {
+        "session": loaded.session,
+        "jd": loaded.job_description,
+        "user_id": loaded.session.user_id,
+        "job_description_id": loaded.session.job_description_id,
+    }
+    publish_jd_gap_analysis_start_from_state({**state, **updates}, config)
+
     jd = loaded.job_description
     if jd.extraction_status != "done":
         raise ValueError(
@@ -40,12 +48,7 @@ def load_session(
             f"(extraction_status={jd.extraction_status!r}); run jd_extract first"
         )
 
-    return {
-        "session": loaded.session,
-        "jd": jd,
-        "user_id": loaded.session.user_id,
-        "job_description_id": loaded.session.job_description_id,
-    }
+    return updates
 
 
 @thinking("Starting gap analysis…")

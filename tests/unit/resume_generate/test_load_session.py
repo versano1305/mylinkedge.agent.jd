@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from unittest.mock import patch
+
 import pytest
 from conftest import JD_ID, SESSION_ID, USER_ID, FakeUserResumeBuilders, make_session
 from mylinkedge_agent_tools.taxonomy import TaxonomyGraph, TaxonomyNode
@@ -62,7 +64,10 @@ def test_loads_session_scoped_by_owner(
     fake_urb: FakeUserResumeBuilders, owner_person_count: dict, count: int
 ) -> None:
     owner_person_count["value"] = count
-    result = load_session({"session_id": SESSION_ID}, {})
+    with patch(
+        "jd_agent.graphs.resume_generate.nodes.load_session.node.publish_resume_generate_start_from_state",
+    ) as publish:
+        result = load_session({"session_id": SESSION_ID}, {})
 
     assert result["user_id"] == USER_ID
     assert result["session"].id == SESSION_ID
@@ -72,6 +77,9 @@ def test_loads_session_scoped_by_owner(
     assert result["generate_status"] == "generating"
     assert "person_id" not in result
     assert owner_person_count["calls"] == [(USER_ID, "Person")]
+    publish.assert_called_once()
+    assert publish.call_args.args[0]["session_id"] == SESSION_ID
+    assert publish.call_args.args[1] == {}
 
 
 def test_mark_generating_updates_only_this_session(

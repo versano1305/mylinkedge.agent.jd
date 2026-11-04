@@ -14,15 +14,16 @@ dependencies = [
     "httpx>=0.27.0",
     "supabase>=2.4.3",
     "en-core-web-sm",
-    "mylinkedge-agent-tools-skill-matching",
-    "mylinkedge-agent-tools-skills",
-    "mylinkedge-agent-tools-taxonomy",
+    "mylinkedge-agent-tools-shared>=0.1.0",
+    "mylinkedge-agent-tools-skill-matching>=0.1.0",
+    "mylinkedge-agent-tools-skills>=0.1.0",
+    "mylinkedge-agent-tools-taxonomy>=0.1.0",
     "neo4j>=5.24.0",
     "networkx>=3.0",
     "scipy>=1.11",
-    "mylinkedge-agent-tools-event-hub",
-    "mylinkedge-agent-tools-langgraph-streaming[server]",
-    "mylinkedge-agent-tools-postgres",
+    "mylinkedge-agent-tools-event-hub>=0.2.0",
+    "mylinkedge-agent-tools-langgraph-streaming[server,http]>=0.3.0",
+    "mylinkedge-agent-tools-postgres>=0.1.0",
     "protobuf>=7.35.1",
     "grpcio>=1.84.0",
     "pymongo>=4.10.0",
@@ -32,6 +33,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
     "ruff>=0.8.2",
     "langgraph-cli[inmem]>=0.4.14",
 ]
@@ -53,6 +55,7 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 python_files = ["test_*.py", "integration_test_*.py"]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100
@@ -63,11 +66,45 @@ select = ["E", "F", "I", "UP"]
 [tool.uv]
 override-dependencies = ["protobuf>=7.35.1"]
 
+# -----------------------------------------------------------------------------
+# mylinkedge-agent-tools source: LOCAL (default) vs CodeArtifact (before publish)
+#
+# Local dev: clone ../mylinkedge.agent.tools next to this repo; use path= below
+# (same pattern as mylinkedge.agent.interview).
+# Before publish / production Docker without sibling checkout:
+#   1. Comment out every active `path = ...` line in [tool.uv.sources]
+#   2. Uncomment [[tool.uv.index]] and every `index = "codeartifact"` line below
+#   3. Run `eval "$(make codeartifact-login)"` then `uv lock && uv sync`
+# -----------------------------------------------------------------------------
+
+# Before publish — uncomment:
+# [[tool.uv.index]]
+# name = "codeartifact"
+# url = "https://skillsai-957156516811.d.codeartifact.us-east-1.amazonaws.com/pypi/packages/simple/"
+# explicit = true
+# authenticate = "always"
+
 [tool.uv.sources]
 en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
+
+# Local sibling checkout (active for development):
+mylinkedge-agent-tools-event-hub = { path = "../mylinkedge.agent.tools/projects/event-hub", editable = true }
+mylinkedge-agent-tools-global-lookup = { path = "../mylinkedge.agent.tools/projects/global-lookup", editable = true }
+mylinkedge-agent-tools-langgraph-streaming = { path = "../mylinkedge.agent.tools/projects/langgraph-streaming", editable = true }
+mylinkedge-agent-tools-postgres = { path = "../mylinkedge.agent.tools/projects/postgres", editable = true }
+mylinkedge-agent-tools-shared = { path = "../mylinkedge.agent.tools/projects/shared", editable = true }
+mylinkedge-agent-tools-skill-experience = { path = "../mylinkedge.agent.tools/projects/skill-experience", editable = true }
 mylinkedge-agent-tools-skill-matching = { path = "../mylinkedge.agent.tools/projects/skill-matching", editable = true }
 mylinkedge-agent-tools-skills = { path = "../mylinkedge.agent.tools/projects/skills-graph", editable = true }
-mylinkedge-agent-tools-event-hub = { path = "../mylinkedge.agent.tools/projects/event-hub", editable = true }
-mylinkedge-agent-tools-langgraph-streaming = { path = "../mylinkedge.agent.tools/projects/langgraph-streaming", editable = true }
 mylinkedge-agent-tools-taxonomy = { path = "../mylinkedge.agent.tools/projects/taxonomy-graph", editable = true }
-mylinkedge-agent-tools-postgres = { path = "../mylinkedge.agent.tools/projects/postgres", editable = true }
+
+# Before publish — comment out path= lines above and uncomment these:
+# mylinkedge-agent-tools-event-hub = { index = "codeartifact" }
+# mylinkedge-agent-tools-global-lookup = { index = "codeartifact" }
+# mylinkedge-agent-tools-langgraph-streaming = { index = "codeartifact" }
+# mylinkedge-agent-tools-postgres = { index = "codeartifact" }
+# mylinkedge-agent-tools-shared = { index = "codeartifact" }
+# mylinkedge-agent-tools-skill-experience = { index = "codeartifact" }
+# mylinkedge-agent-tools-skill-matching = { index = "codeartifact" }
+# mylinkedge-agent-tools-skills = { index = "codeartifact" }
+# mylinkedge-agent-tools-taxonomy = { index = "codeartifact" }

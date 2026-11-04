@@ -1,12 +1,12 @@
-"""HTTP host placeholder."""
+"""HTTP container host: thread seeding and SSE streaming."""
 
 from __future__ import annotations
 
+from jd_agent.container.http.server import serve
+
 
 class HttpContainerRunner:
-    """Reserved for a future HTTP server that invokes the same graphs."""
+    """Run the LangGraph thread HTTP API until shutdown."""
 
     def run(self) -> None:
-        raise NotImplementedError(
-            "HTTP container is not implemented yet. Use --container sqs."
-        )
+        serve()

@@ -19,7 +19,7 @@ RESUME_GENERATE_GRAPH = "resume_generate"
 def jd_extraction_input(event: JdExtractionQueued) -> dict[str, Any]:
     """``jd_extract`` is invoked with the existing job-description id."""
 
-    jd_id = event.job_description_id.strip()
+    jd_id = event.payload.job_description_id.strip()
     if not jd_id:
         raise HandlerPermanentError("job_description_id is required")
     return {"jd_id": jd_id}
@@ -42,7 +42,7 @@ def thread_id_for(
 ) -> str | None:
     """LangGraph thread id from the event, when the publisher set one."""
 
-    raw = event.run_id or event.trace_id
+    raw = event.payload.run_id or event.payload.trace_id
     if raw is None:
         return None
     thread_id = str(raw).strip()

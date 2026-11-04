@@ -75,5 +75,7 @@ class AgentJdQueuedHandlers:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            logger.exception("graph %s failed for job_id=%s", graph_id, event.job_id)
+            logger.exception(
+                "graph %s failed for job_id=%s", graph_id, event.payload.job_id
+            )
             raise HandlerRetryError(str(exc)) from exc

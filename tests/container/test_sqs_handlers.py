@@ -8,12 +8,16 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from mylinkedge_agent_tools.event_hub import (
     EventMessageContext,
+    GraphId,
     HandlerPermanentError,
     HandlerRetryError,
     JdExtractionQueued,
     JdGapAnalysisQueued,
-    JdGapAnalysisQueuedPayload,
     ResumeGenerateQueued,
+)
+from mylinkedge_agent_tools.event_hub.lifecycle import (
+    JdExtractionQueuedPayload,
+    JdGapAnalysisQueuedPayload,
     ResumeGenerateQueuedPayload,
 )
 
@@ -39,9 +43,9 @@ def test_registers_the_three_queued_types() -> None:
     worker = _consumer(AsyncMock())
 
     assert set(worker._dispatcher.registered_types()) == {
-        "process.jd-extraction/queued",
-        "process.jd-gap-analysis/queued",
-        "process.resume-generate/queued",
+        "jd_extraction_queued",
+        "jd_gap_analysis_queued",
+        "resume_generate_queued",
     }
 
 
@@ -59,9 +63,12 @@ def test_resume_generate_invokes_graph() -> None:
     invoker.invoke.return_value = {"generate_status": "done"}
     worker = _consumer(invoker)
     event = ResumeGenerateQueued(
-        job_id="job-1",
-        trace_id="trace-1",
-        payload=ResumeGenerateQueuedPayload(session_id="session-1"),
+        initiator=GraphId.RESUME_GENERATE,
+        payload=ResumeGenerateQueuedPayload(
+            job_id="job-1",
+            session_id="session-1",
+            run_id="trace-1",
+        ),
     )
 
     asyncio.run(worker.handle_resume_generate(event, _ctx()))
@@ -78,9 +85,12 @@ def test_dispatch_raw_body_to_jd_extraction() -> None:
     invoker.invoke.return_value = {"extraction_status": "done"}
     worker = _consumer(invoker)
     event = JdExtractionQueued(
-        job_id="jd-1",
-        job_description_id="jd-1",
-        run_id="run-1",
+        initiator=GraphId.JD_EXTRACT,
+        payload=JdExtractionQueuedPayload(
+            job_id="jd-1",
+            job_description_id="jd-1",
+            run_id="run-1",
+        ),
     )
 
     asyncio.run(worker._handle_raw(event.model_dump_json(), _ctx()))
@@ -96,9 +106,12 @@ def test_gap_analysis_blank_session_is_permanent() -> None:
     invoker = AsyncMock()
     worker = _consumer(invoker)
     event = JdGapAnalysisQueued(
-        job_id="job-1",
-        job_description_id="jd-1",
-        payload=JdGapAnalysisQueuedPayload(session_id="  "),
+        initiator=GraphId.GAP_COLLECT,
+        payload=JdGapAnalysisQueuedPayload(
+            job_id="job-1",
+            job_description_id="jd-1",
+            session_id="  ",
+        ),
     )
 
     with pytest.raises(HandlerPermanentError):
@@ -111,8 +124,8 @@ def test_graph_failure_is_retried() -> None:
     invoker.invoke.side_effect = RuntimeError("database down")
     worker = _consumer(invoker)
     event = ResumeGenerateQueued(
-        job_id="job-1",
-        payload=ResumeGenerateQueuedPayload(session_id="session-1"),
+        initiator=GraphId.RESUME_GENERATE,
+        payload=ResumeGenerateQueuedPayload(job_id="job-1", session_id="session-1"),
     )
 
     with pytest.raises(HandlerRetryError, match="database down"):

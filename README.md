@@ -22,9 +22,9 @@ Studio input for `gap_collect`:
 
 ## Setup
 
+`mylinkedge-agent-tools*` is installed from the sibling `../mylinkedge.agent.tools` checkout (editable paths in `pyproject.toml`). Everything else uses public PyPI. Restore the commented CodeArtifact sources in `pyproject.toml` before publish.
+
 ```bash
-uv venv
-source .venv/bin/activate
 make install
 cp .env.example .env
 ```
@@ -59,18 +59,55 @@ Studio input example:
 
 ## Container
 
-The graphs can be hosted by a container runtime. SQS is implemented; HTTP and gRPC are reserved.
+The graphs can be hosted by a container runtime. SQS, HTTP (`/threads`), and gRPC are implemented.
 
 `agent-jd-events` (LocalStack name `skills-ai-local-agent-jd-events`) delivers queued work only:
 
-- `process.jd-extraction/queued` — invokes `jd_extract` with `job_description_id`
-- `process.jd-gap-analysis/queued` — invokes `gap_collect` with `payload.session_id`
-- `process.resume-generate/queued` — invokes `resume_generate` with `payload.session_id`
+- `jd_extraction_queued` — invokes `jd_extract` with `payload.job_description_id`
+- `jd_gap_analysis_queued` — invokes `gap_collect` with `payload.session_id`
+- `resume_generate_queued` — invokes `resume_generate` with `payload.session_id`
+
+Each graph's first node publishes the matching lifecycle start event (`jd_extraction_start`,
+`jd_gap_analysis_start`, `resume_generate_start`) via `mylinkedge_agent_tools.event_hub`.
+Set `JD_LIFECYCLE_EVENTS_ENABLED=0` to disable publishing.
 
 Queue URLs and the dead-letter queue are in `skills.ai.ioc/localstack` (`stack-outputs.env` after deploy). Set `SQS_QUEUE_URL_PREFIX`, `SQS_QUEUE_NAME`, and `AWS_ENDPOINT_URL` (see `.env.example`), then:
 
 ```bash
 make sqs-worker
+```
+
+### HTTP (`/threads`)
+
+Gateway seeds threads with a service secret; browsers stream with a bearer session JWT
+(see `interview copy.md`). Set `SERVICE_SECRET`, `SESSION_JWT_SECRET`, and Mongo
+checkpointer vars from `.env.example`, then:
+
+```bash
+make http-server
+```
+
+`POST /threads` (header `X-Service-Secret`) — body examples:
+
+```json
+{ "graph_id": "jd_extract", "sub": "user:<uuid>", "context": { "jd_id": "<job-description-id>" } }
+```
+
+```json
+{ "graph_id": "gap_collect", "sub": "user:<uuid>", "context": { "session_id": "<resume-builder-session-id>" } }
+```
+
+```json
+{ "graph_id": "resume_generate", "sub": "user:<uuid>", "context": { "session_id": "<resume-builder-session-id>" } }
+```
+
+Response: `{ "thread_id", "graph_id", "sub" }`. Mint a session JWT in the gateway, then
+`POST /threads/{thread_id}/stream` with `Authorization: Bearer …` for SSE `TurnEvent` frames.
+
+### gRPC
+
+```bash
+make grpc-server
 ```
 
 ## Tests

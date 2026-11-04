@@ -22,6 +22,7 @@ from jd_agent.integrations.supabase.jd_repository import (
     URL_ORIGIN_TYPES,
     JobDescription,
 )
+from jd_agent.shared.jd_event_hub import publish_jd_extraction_start_from_state
 
 _KNOWN_ORIGIN_TYPES = frozenset({"copy_paste"}) | URL_ORIGIN_TYPES
 
@@ -39,10 +40,11 @@ def load_jd(
     config: RunnableConfig,
 ) -> dict[str, Any]:
     """Load the existing JD row and validate origin fields."""
-    _ = config
     jd_id = str(state.get("jd_id") or "").strip()
     if not jd_id:
         raise ValueError("jd_id is required")
+
+    publish_jd_extraction_start_from_state(state, config)
 
     client = client_from_env()
     row = jd_repo.get_by_id(client, jd_id)

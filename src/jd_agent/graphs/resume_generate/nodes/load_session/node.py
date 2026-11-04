@@ -17,6 +17,7 @@ from jd_agent.graphs.resume_generate.constants import DEFAULT_TEMPLATE
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 from jd_agent.graphs.resume_generate.taxonomy_types import node_type
 from jd_agent.integrations.skills_graph import count_owner_nodes
+from jd_agent.shared.jd_event_hub import publish_resume_generate_start_from_state
 
 
 def load_session(
@@ -24,10 +25,11 @@ def load_session(
 ) -> dict[str, Any]:
     """Load the session + JD and verify the owner has at most one ``Person``."""
 
-    _ = config
     session_id = str(state.get("session_id") or "").strip()
     if not session_id:
         raise ValueError("session_id is required")
+
+    publish_resume_generate_start_from_state(state, config)
 
     loaded = get_postgres_db().user_resume_builders.get_with_job_description(session_id)
     if loaded is None:

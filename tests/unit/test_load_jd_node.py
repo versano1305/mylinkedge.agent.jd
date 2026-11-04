@@ -27,10 +27,17 @@ def test_load_jd_returns_row() -> None:
             "jd_agent.graphs.jd_extract.nodes._legacy.jd_repo.get_by_id",
             return_value=row,
         ),
+        patch(
+            "jd_agent.graphs.jd_extract.nodes._legacy.publish_jd_extraction_start_from_state",
+        ) as publish_start,
     ):
-        result = load_jd({"jd_id": "jd-1"}, {})
+        result = load_jd({"jd_id": "jd-1"}, {"configurable": {"run_id": "run-1"}})
 
     assert result == {"jd": row}
+    publish_start.assert_called_once_with(
+        {"jd_id": "jd-1"},
+        {"configurable": {"run_id": "run-1"}},
+    )
 
 
 def test_load_jd_missing_row() -> None:

@@ -14,9 +14,7 @@ def test_sqs_is_the_implemented_runner() -> None:
     assert isinstance(create_runner("sqs"), SqsContainerRunner)
 
 
-def test_http_is_reserved_and_grpc_runner_exists() -> None:
-    with pytest.raises(NotImplementedError, match="HTTP"):
-        create_runner("http").run()
+def test_http_and_grpc_runners_exist() -> None:
     assert isinstance(create_runner("http"), HttpContainerRunner)
     assert isinstance(create_runner("grpc"), GrpcContainerRunner)
 
