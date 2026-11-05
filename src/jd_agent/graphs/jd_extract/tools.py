@@ -48,24 +48,3 @@ def fetch_job_posting(url: str, source: str = "linkedin") -> JobPosting:
     independent of the underlying retrieval API.
     """
     return fetch_job_posting_impl(url, source)
-
-
-# Fixed ID returned by the mock company-resolution tool.
-_MOCK_COMPANY_ID = "company_mock_0001"
-
-
-@tool
-@thinking("Looking up company…")
-def resolve_company_id(company_name: str) -> str:
-    """Resolve a company name to an existing company DB record ID.
-
-    Mocked for now: returns a fixed existing ``company_id`` regardless of input.
-
-    TODO: replace the mock with a real lookup against the company data layer.
-    Search existing companies by ``company_name`` (and any provenance hints),
-    return the matching ``company_id``, and raise a domain error when no
-    existing company can be resolved so the graph fails per the plan.
-    """
-    if not company_name:
-        raise ValueError("company_name is required to resolve a company_id")
-    return _MOCK_COMPANY_ID

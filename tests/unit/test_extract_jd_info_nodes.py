@@ -16,6 +16,7 @@ from jd_agent.graphs.jd_extract.nodes.extract_jd_info.node import (
     save_jd_skills,
 )
 from jd_agent.graphs.jd_extract.state import JdExtractState
+from jd_agent.integrations.supabase.jd_repository import JobDescription
 from jd_agent.integrations.supabase.prompt_config_repository import PromptConfigRow
 
 # ---------------------------------------------------------------------------
@@ -77,15 +78,20 @@ def test_prepare_jd_info_sections_builds_tasks() -> None:
             return_value=MagicMock(),
         ),
         patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.jd_repo.get_sections",
-            return_value={"requirements": "Need Go"},
-        ),
-        patch(
             "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.list_by_type",
             return_value=_PARTITION_ROWS,
         ),
     ):
-        result = prepare_jd_info_sections({"jd_id": "jd-1"}, {})
+        result = prepare_jd_info_sections(
+            {
+                "jd_id": "jd-1",
+                "jd": JobDescription(
+                    id="jd-1",
+                    sections={"requirements": "Need Go"},
+                ),
+            },
+            {},
+        )
 
     assert len(result["section_tasks"]) == 1
     task = result["section_tasks"][0]
@@ -268,32 +274,45 @@ def test_save_jd_skills_merges_and_persists() -> None:
         "section_skill_results": [
             {
                 "section_key": "requirements",
-                "skills": [{"name": "Python"}, {"name": "Go"}],
+                "skills": [
+                    {"id": "skill-python", "name": "Python"},
+                    {"name": "Go"},
+                ],
             },
             {
                 "section_key": "description",
-                "skills": [{"name": "python"}, {"name": "SQL"}],
+                "skills": [
+                    {"id": "skill-python", "name": "python"},
+                    {"id": "skill-sql", "name": "SQL"},
+                ],
             },
         ],
     }
-    with (
-        patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.client_from_env",
-            return_value=MagicMock(),
-        ) as client_mock,
-        patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.jd_repo.upsert_skills",
-        ) as upsert_mock,
-    ):
+    with patch(
+        "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.publish_skill_linked_from_state",
+    ) as publish_mock:
         result = save_jd_skills(state, {})
 
-    upsert_mock.assert_called_once()
-    assert upsert_mock.call_args.args[0] is client_mock.return_value
-    assert upsert_mock.call_args.args[1] == "jd-1"
-    assert upsert_mock.call_args.kwargs["skills"] == [
-        {"name": "Python"},
-        {"name": "Go"},
-        {"name": "SQL"},
+    publish_mock.assert_called_once()
+    assert publish_mock.call_args.args[0] is state
+    assert publish_mock.call_args.kwargs["links"] == [
+        {
+            "from_id": "jd-1",
+            "relationship": "REQUIRES_SKILL",
+            "to_id": "skill-python",
+            "properties": {"name": "Python", "requirement_level": 1.0},
+        },
+        {
+            "from_id": "jd-1",
+            "relationship": "REQUIRES_SKILL",
+            "to_id": "skill-sql",
+            "properties": {"name": "SQL", "requirement_level": 1.0},
+        },
+    ]
+    assert publish_mock.call_args.kwargs["context"]["skills"] == [
+        {"id": "skill-python", "name": "Python", "requirement_level": 1.0},
+        {"id": None, "name": "Go", "requirement_level": 1.0},
+        {"id": "skill-sql", "name": "SQL", "requirement_level": 1.0},
     ]
     assert result == {
         "section_tasks": [],
@@ -353,13 +372,6 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
             return_value=MagicMock(),
         ),
         patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.jd_repo.get_sections",
-            return_value={
-                "requirements": "Need Python",
-                "description": "Build services",
-            },
-        ),
-        patch(
             "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.list_by_type",
             return_value=partition_rows,
         ),
@@ -368,28 +380,44 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
             return_value=[skill],
         ) as match_mock,
         patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.jd_repo.upsert_skills",
-        ) as upsert_mock,
+            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.publish_skill_linked_from_state",
+        ) as publish_mock,
     ):
-        result = subgraph.invoke({"jd_id": "jd-1"})
+        result = subgraph.invoke(
+            {
+                "jd_id": "jd-1",
+                "jd": JobDescription(
+                    id="jd-1",
+                    sections={
+                        "requirements": "Need Python",
+                        "description": "Build services",
+                    },
+                ),
+            }
+        )
 
     assert match_mock.call_count == 2
-    upsert_mock.assert_called_once()
-    assert upsert_mock.call_args.kwargs["skills"] == [
+    publish_mock.assert_called_once()
+    assert publish_mock.call_args.kwargs["links"] == [
         {
-            "id": "skill-a",
-            "name": "Python",
-            "skill_type": "unknown",
-            "type": "Skill",
-            "aliases": [],
-            "properties": {},
-            "is_existing": True,
-            "evidence_sentence": "Need Python",
-            "surface_form": "Python",
-            "candidate_ids": [],
-            "importance": 1.0,
-            "substitutable": False,
-            "min_years": None,
+            "from_id": "jd-1",
+            "relationship": "REQUIRES_SKILL",
+            "to_id": "skill-a",
+            "properties": {
+                "name": "Python",
+                "requirement_level": 1.0,
+                "skill_type": "unknown",
+                "type": "Skill",
+                "aliases": [],
+                "properties": {},
+                "is_existing": True,
+                "evidence_sentence": "Need Python",
+                "surface_form": "Python",
+                "candidate_ids": [],
+                "importance": 1.0,
+                "substitutable": False,
+                "min_years": None,
+            },
         }
     ]
     assert result["section_tasks"] == []

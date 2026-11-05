@@ -25,11 +25,15 @@ class JobPosting(BaseModel):
 class JdExtractInput(BaseModel):
     """Studio / API input for the JD extraction graph.
 
-    The row must already exist in ``job_description``; the graph loads
-    origin fields from the database via ``jd_id``.
+    The row must already exist in ``job_description``. Callers pass that
+    object as ``jd``; the graph validates it and does not load the row.
     """
 
-    jd_id: str = Field(description="Existing job_description.id to process")
+    jd: dict[str, Any] = Field(description="Existing job_description row")
+    jd_id: str = Field(
+        default="",
+        description="Existing job_description.id; must match jd.id when set",
+    )
 
 
 class JdExtractionNode(BaseModel):

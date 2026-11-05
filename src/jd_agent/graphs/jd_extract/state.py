@@ -20,20 +20,18 @@ def _replace_list(left: list[Any] | None, right: list[Any] | None) -> list[Any]:
 class JdExtractState(TypedDict, total=False):
     """Shared state that flows through JD extraction nodes.
 
-    ``jd_id`` is required: the unprocessed JD record already exists in the
-    database before the graph is invoked. ``load_jd`` hydrates ``jd`` from
-    that row; source fields (origin_jd, origin_type, company_name, …) are
-    read from ``jd`` rather than duplicated as invoke inputs.
+    The unprocessed JD record already exists in the database before the
+    graph is invoked. Callers pass that row as ``jd``. ``initialize``
+    validates it; source fields (origin_jd, origin_type, company_name, …)
+    are read from ``jd``.
 
     Skills are persisted by ``save_jd_skills`` and are not mirrored in a
-    separate ``extraction`` blob. Company fields are persisted by
-    ``resolve_company``.
+    separate ``extraction`` blob. ``resolve_company`` publishes a company
+    lookup; ``company_id`` is filled downstream.
     """
 
-    # Studio / API input
-    jd_id: str  # Required: existing JD record being processed
-
-    # Loaded from DB
+    # Studio / API input. ``jd`` is the existing row; ``jd_id`` mirrors ``jd.id``.
+    jd_id: str
     jd: JobDescription
 
     # Intermediate
@@ -45,5 +43,5 @@ class JdExtractState(TypedDict, total=False):
     section_skill_results: Annotated[list[dict[str, Any]], operator.add]
 
     # Output
-    company_id: str  # Resolved existing company DB record ID
+    company_id: str  # Filled downstream from COMPANY_LOOKUP
     extraction_status: JdExtractStatus  # extracting → done, or failed on error

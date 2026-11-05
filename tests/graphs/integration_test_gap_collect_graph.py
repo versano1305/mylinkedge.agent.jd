@@ -12,8 +12,8 @@ The test session must already exist with:
 - ``user_id`` that has at least some Skill evidence in Neo4j (empty held
   set still runs, but Fit / Latent will be uninteresting)
 
-Invoke with ``{session_id}`` only. The session row is updated in place:
-``status`` → ``gap-interview``, ``gaps`` / ``gaps_date`` written.
+Invoke with ``{session_id}`` only. Persistence of ``gaps`` / session status is
+handled by event-hub consumers, not by the graph directly.
 """
 
 from __future__ import annotations
@@ -25,10 +25,6 @@ import pytest
 from dotenv import load_dotenv
 
 from jd_agent.graphs.gap_collect.gap_collect_graph import graph
-from jd_agent.integrations.supabase import (
-    user_resume_builder_repository as urb_repo,
-)
-from jd_agent.integrations.supabase.client import client_from_env
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_REPO_ROOT / ".env")
@@ -56,7 +52,7 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_gap_collect_graph_live_ends_done() -> None:
-    """Invoke the full graph by session_id; assert gaps persisted and status advanced."""
+    """Invoke the full graph by session_id; assert computed gaps and terminal status."""
     session_id = os.environ["GAP_COLLECT_TEST_SESSION_ID"].strip()
 
     result = graph.invoke({"session_id": session_id})
@@ -74,13 +70,3 @@ def test_gap_collect_graph_live_ends_done() -> None:
         "true_gap",
     }
     assert isinstance(gaps["interview"].get("queue"), list)
-
-    # Round-trip: the session row itself must reflect the write.
-    client = client_from_env()
-    row = urb_repo.get_by_id(client, session_id)
-    assert row is not None
-    assert row.status == urb_repo.GAP_INTERVIEW_STEP
-    assert row.gaps_date is not None
-    assert isinstance(row.gaps, dict)
-    assert row.gaps.get("schema_version") == 1
-    assert row.gaps.get("meta", {}).get("fit") == gaps["meta"]["fit"]

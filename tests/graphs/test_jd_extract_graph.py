@@ -12,7 +12,8 @@ def test_jd_extract_graph_compiles() -> None:
 
 def test_jd_extract_graph_has_expected_nodes() -> None:
     node_names = set(graph.get_graph().nodes)
-    assert "load_jd" in node_names
+    assert "initialize" in node_names
+    assert "mark_extracting" not in node_names
     assert "fetch_jd" in node_names
     assert "prepare_jd_text" in node_names
     assert "save_jd_sections" in node_names

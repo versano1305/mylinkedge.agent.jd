@@ -12,57 +12,22 @@ from mylinkedge_agent_tools.langgraph_streaming.custom_events import (
 )
 
 from jd_agent.graphs.jd_extract.state import JdExtractState
-from jd_agent.graphs.jd_extract.tools import (
-    fetch_job_posting_impl,
-    resolve_company_id,
-)
-from jd_agent.integrations.supabase import jd_repository as jd_repo
-from jd_agent.integrations.supabase.client import client_from_env
+from jd_agent.graphs.jd_extract.tools import fetch_job_posting_impl
 from jd_agent.integrations.supabase.jd_repository import (
     URL_ORIGIN_TYPES,
     JobDescription,
 )
-from jd_agent.shared.jd_event_hub import publish_jd_extraction_start_from_state
-
-_KNOWN_ORIGIN_TYPES = frozenset({"copy_paste"}) | URL_ORIGIN_TYPES
+from jd_agent.shared.jd_event_hub import (
+    publish_company_lookup_from_state,
+    publish_jd_extraction_end_from_state,
+)
 
 
 def _require_jd(state: JdExtractState) -> JobDescription:
     jd = state.get("jd")
-    if jd is None:
-        raise ValueError("jd is required; run load_jd first")
+    if not isinstance(jd, JobDescription):
+        raise ValueError("jd is required")
     return jd
-
-
-@thinking("Loading job description…")
-def load_jd(
-    state: JdExtractState,
-    config: RunnableConfig,
-) -> dict[str, Any]:
-    """Load the existing JD row and validate origin fields."""
-    jd_id = str(state.get("jd_id") or "").strip()
-    if not jd_id:
-        raise ValueError("jd_id is required")
-
-    publish_jd_extraction_start_from_state(state, config)
-
-    client = client_from_env()
-    row = jd_repo.get_by_id(client, jd_id)
-    if row is None:
-        raise ValueError(f"No job_description row for id={jd_id}")
-
-    origin_jd = (row.origin_jd or "").strip()
-    if not origin_jd:
-        raise ValueError(f"origin_jd is empty for jd_id={jd_id}")
-
-    origin_type = (row.origin_type or "").strip()
-    if origin_type not in _KNOWN_ORIGIN_TYPES:
-        raise ValueError(
-            f"Unknown origin_type={origin_type!r} for jd_id={jd_id}. "
-            f"Expected one of: {sorted(_KNOWN_ORIGIN_TYPES)}"
-        )
-
-    return {"jd": row}
 
 
 def route_by_origin_type(
@@ -73,19 +38,6 @@ def route_by_origin_type(
     if jd.origin_type in URL_ORIGIN_TYPES:
         return "fetch_jd"
     return "prepare_jd_text"
-
-
-@thinking("Starting JD extraction…")
-def mark_extracting(
-    state: JdExtractState,
-    config: RunnableConfig,
-) -> dict[str, Any]:
-    """Mark the JD as ``extracting``."""
-    _ = config
-    jd_id = str(state["jd_id"])
-    client = client_from_env()
-    jd_repo.update_extraction_status(client, jd_id, "extracting")
-    return {"extraction_status": "extracting"}
 
 
 @thinking("Fetching job posting from URL…")
@@ -120,31 +72,24 @@ def fetch_jd(state: JdExtractState) -> dict[str, Any]:
 
 
 @thinking("Resolving company…")
-def resolve_company(state: JdExtractState) -> dict[str, Any]:
-    """Resolve ``jd.company_name`` to an existing ``company_id`` and persist both.
+def resolve_company(
+    state: JdExtractState,
+    config: RunnableConfig,
+) -> dict[str, Any]:
+    """Publish ``COMPANY_LOOKUP`` for ``jd.company_name``.
 
-    Runs after skills are saved. Uses the mock company-resolution tool until
-    the real company data layer is wired.
+    The company id is resolved downstream from the lookup result.
     """
     jd = _require_jd(state)
     company_name = (jd.company_name or "").strip()
     if not company_name:
         raise ValueError("company_name is required before resolve_company")
-    company_id = str(resolve_company_id.invoke({"company_name": company_name})).strip()
-    if not company_id:
-        raise ValueError("resolve_company_id returned an empty company_id")
-
-    client = client_from_env()
-    updated = jd_repo.update_company(
-        client,
-        state["jd_id"],
-        company_id=company_id,
+    publish_company_lookup_from_state(
+        state,
         company_name=company_name,
+        config=config,
     )
-    return {
-        "company_id": company_id,
-        "jd": updated,
-    }
+    return {}
 
 
 @thinking("Finishing JD extraction…")
@@ -152,21 +97,26 @@ def mark_done(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
-    """Mark the JD record as ``done`` and signal completion to stream clients."""
-    _ = config
-    jd_id = state["jd_id"]
-    client = client_from_env()
-    jd_repo.update_extraction_status(client, jd_id, "done")
-    row = jd_repo.get_by_id(client, jd_id)
-    if row is None:
-        raise ValueError(f"No job_description row for id={jd_id}")
+    """Publish ``JD_EXTRACTION_END`` and signal completion to stream clients."""
+    jd = _require_jd(state)
+    jd_id = str(state.get("jd_id") or jd.id).strip()
+    if not jd_id:
+        raise ValueError("jd_id is required")
 
+    skills = [skill.model_dump() for skill in jd.skills]
+    sections = dict(jd.sections)
+    publish_jd_extraction_end_from_state(
+        state,
+        skills=skills,
+        sections=sections,
+        config=config,
+    )
     emit_client_event(
         "jd_extraction_finish",
         {
-            "job_description_id": str(jd_id),
-            "skills": [skill.model_dump() for skill in row.skills],
-            "sections": dict(row.sections),
+            "job_description_id": jd_id,
+            "skills": skills,
+            "sections": sections,
         },
     )
     emit_finish_interview()

@@ -24,6 +24,9 @@ from jd_agent.integrations.supabase.prompt_config_repository import (
     JD_SECTION_EXTRACTION,
     list_by_type,
 )
+from jd_agent.shared.jd_event_hub import publish_skill_linked_from_state
+
+_REQUIRES_SKILL = "REQUIRES_SKILL"
 
 
 @thinking("Preparing skill extraction sections…")
@@ -37,11 +40,12 @@ def prepare_jd_info_sections(
     if not jd_id:
         raise ValueError("jd_id is required before prepare_jd_info_sections")
 
-    client = client_from_env()
-    sections = jd_repo.get_sections(client, jd_id)
+    jd = state.get("jd")
+    sections = jd.sections if jd is not None else {}
     if not sections:
-        raise ValueError(f"No sections saved for jd_id={jd_id}")
+        raise ValueError(f"No sections in state for jd_id={jd_id}")
 
+    client = client_from_env()
     config_rows = list_by_type(client, JD_SECTION_EXTRACTION)
     if not config_rows:
         raise ValueError(
@@ -159,13 +163,35 @@ def initialize_missing_skill_fields(
     return {"section_skill_results": Overwrite(enriched_results)}
 
 
+def _requires_skill_links(
+    jd_id: str,
+    skills: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Map persisted skill rows to ``JobDescription -[:REQUIRES_SKILL]-> Skill``."""
+    links: list[dict[str, Any]] = []
+    for skill in skills:
+        skill_id = str(skill.get("id") or "").strip()
+        if not skill_id:
+            continue
+        links.append(
+            {
+                "from_id": jd_id,
+                "relationship": _REQUIRES_SKILL,
+                "to_id": skill_id,
+                "properties": {
+                    key: value for key, value in skill.items() if key != "id"
+                },
+            }
+        )
+    return links
+
+
 @thinking("Saving extracted skills…")
 def save_jd_skills(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
-    """Merge mapped section skills and persist them on ``job_description.skills``."""
-    _ = config
+    """Merge mapped section skills and publish ``SKILL_LINKED``."""
     jd_id = str(state.get("jd_id") or "").strip()
     if not jd_id:
         raise ValueError("jd_id is required before save_jd_skills")
@@ -190,11 +216,22 @@ def save_jd_skills(
             seen.add(key)
             combined.append(dict(skill))
 
-    client = client_from_env()
-    jd_repo.upsert_skills(client, jd_id, skills=combined)
+    saved_skills = [
+        jd_repo.JobDescriptionSkill.model_validate(skill) for skill in combined
+    ]
+    saved_payloads = [skill.model_dump(mode="json") for skill in saved_skills]
+    publish_skill_linked_from_state(
+        state,
+        links=_requires_skill_links(jd_id, saved_payloads),
+        context={"skills": saved_payloads},
+        config=config,
+    )
 
-    # Skills live on the JD row; drop map-reduce intermediates from state.
-    return {
+    updates: dict[str, Any] = {
         "section_tasks": [],
         "section_skill_results": Overwrite([]),
     }
+    jd = state.get("jd")
+    if jd is not None:
+        updates["jd"] = jd.model_copy(update={"skills": saved_skills})
+    return updates

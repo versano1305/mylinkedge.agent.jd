@@ -38,12 +38,23 @@ def test_registry_graphs_have_checkpointer(registry) -> None:
         assert getattr(graph, "checkpointer", None) is not None
 
 
-def test_jd_extract_bootstrap_requires_jd_id(registry) -> None:
+def test_jd_extract_bootstrap_requires_jd(registry) -> None:
     spec = registry.get(JD_EXTRACT_GRAPH)
     assert spec.bootstrap_input is not None
-    with pytest.raises(ValueError, match="jd_id"):
+    with pytest.raises(ValueError, match="jd is required"):
         spec.bootstrap_input({})
-    assert spec.bootstrap_input({"jd_id": " jd-1 "}) == {"jd_id": "jd-1"}
+    result = spec.bootstrap_input(
+        {
+            "jd": {
+                "id": "jd-1",
+                "origin_type": "copy_paste",
+                "origin_jd": "Pasted text",
+            }
+        }
+    )
+    assert result["jd_id"] == "jd-1"
+    assert result["jd"].id == "jd-1"
+    assert result["jd"].origin_jd == "Pasted text"
 
 
 def test_gap_collect_bootstrap_requires_session_id(registry) -> None:

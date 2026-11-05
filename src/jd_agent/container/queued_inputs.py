@@ -17,7 +17,7 @@ RESUME_GENERATE_GRAPH = "resume_generate"
 
 
 def jd_extraction_input(event: JdExtractionQueued) -> dict[str, Any]:
-    """``jd_extract`` is invoked with the existing job-description id."""
+    """Return the job-description id from a queued extraction event."""
 
     jd_id = event.payload.job_description_id.strip()
     if not jd_id:

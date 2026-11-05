@@ -11,8 +11,8 @@ The test row must already exist with:
 - ``origin_jd`` = non-empty pasted JD text
 - ``company_name`` / ``title_name`` set (paste path)
 
-Invoke with ``{jd_id}`` only; the graph loads origin fields from the DB
-using ``SUPABASE_*`` env vars. The row will be updated in place.
+Invoke with the existing ``job_description`` row as ``jd``. The graph
+validates that object and does not load it. The row will be updated in place.
 """
 
 from __future__ import annotations
@@ -24,6 +24,11 @@ import pytest
 from dotenv import load_dotenv
 
 from jd_agent.graphs.jd_extract.jd_extract_graph import graph
+from jd_agent.integrations.supabase.client import client_from_env
+from jd_agent.integrations.supabase.jd_repository import (
+    JOB_DESCRIPTION_TABLE,
+    normalize_job_description,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_REPO_ROOT / ".env")
@@ -52,9 +57,24 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_jd_extract_graph_live_raw_ends_done() -> None:
-    """Invoke the full graph by jd_id; assert final extraction_status is done."""
+    """Invoke the full graph with the existing JD row."""
     jd_id = os.environ["JD_EXTRACT_TEST_JD_ID"].strip()
+    client = client_from_env()
+    response = (
+        client.table(JOB_DESCRIPTION_TABLE)
+        .select("*")
+        .eq("id", jd_id)
+        .maybe_single()
+        .execute()
+    )
+    data = response.data
+    if isinstance(data, list):
+        data = data[0] if data else None
+    if not isinstance(data, dict):
+        raise AssertionError(f"No job_description row for id={jd_id}")
 
-    result = graph.invoke({"jd_id": jd_id})
+    result = graph.invoke(
+        {"jd_id": jd_id, "jd": normalize_job_description(data)}
+    )
 
     assert result["extraction_status"] == "done"

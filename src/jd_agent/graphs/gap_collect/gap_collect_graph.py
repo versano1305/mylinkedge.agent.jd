@@ -2,14 +2,14 @@
 
 Flow
 ----
-1. ``load_session`` loads the ``user_resume_builder`` row + joined JD.
-2. ``mark_analyzing`` sets status to ``gap-analysis_in_progress``.
+1. ``load_session`` loads the ``user_resume_builder`` row + joined JD (postgres read).
+2. ``mark_analyzing`` publishes ``JD_GAP_ANALYSIS_START``.
 3. ``load_jd_targets`` normalizes the JD's extracted skills.
 4. ``load_user_skills`` loads the candidate's held skills (supply seeds).
 5. ``compute_gaps`` builds closures, zones, themes, and the review payload.
 6. ``rank_queue`` attaches the expected-yield-ordered interview queue.
-7. ``save_gaps`` writes ``gaps`` jsonb and advances to the gap-interview step.
-8. ``mark_done`` streams finish events to gRPC clients.
+7. ``save_gaps`` publishes ``JD_GAP_ANALYSIS_DATA`` (``kind=gaps``) for consumer persistence.
+8. ``mark_done`` publishes ``JD_GAP_ANALYSIS_END`` and streams finish events to gRPC clients.
 
 Invoke input: ``{"session_id": "<user_resume_builder uuid>"}``.
 """

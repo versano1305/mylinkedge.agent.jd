@@ -5,9 +5,9 @@ frontend created it and ran JD extraction). ``load_session`` hydrates the
 session and its joined ``job_description``; downstream nodes read from those
 rather than duplicating fields as invoke inputs.
 
-The assembled ``gaps`` document is written to ``user_resume_builder.gaps`` and
-serves both the gap-review UI (``gaps.review``) and the interview
-(``gaps.interview``). ``meta.fit_if_all_latent`` is the counterfactual fit if
+The assembled ``gaps`` document is published via ``JD_GAP_ANALYSIS_DATA`` for a
+consumer to persist on ``user_resume_builder.gaps``. It serves both the gap-review UI
+(``gaps.review``) and the interview (``gaps.interview``). ``meta.fit_if_all_latent`` is the counterfactual fit if
 every latent-zone skill were confirmed; ``review.latent_fit`` mirrors that for
 display.
 """

@@ -20,14 +20,22 @@ from jd_agent.graphs.jd_extract.jd_extract_graph import builder as jd_extract_bu
 from jd_agent.graphs.resume_generate.resume_generate_graph import (
     builder as resume_generate_builder,
 )
+from jd_agent.integrations.supabase.jd_repository import JobDescription
 from jd_agent.shared.mongo import get_mongo_checkpointer
 
 
 def _jd_extract_bootstrap(body: dict[str, Any]) -> dict[str, Any]:
-    jd_id = str(body.get("jd_id") or "").strip()
+    raw = body.get("jd")
+    if not isinstance(raw, dict):
+        raise ValueError("jd is required")
+    jd = JobDescription.model_validate(raw)
+    jd_id = str(jd.id or "").strip()
     if not jd_id:
-        raise ValueError("jd_id is required")
-    return {"jd_id": jd_id}
+        raise ValueError("jd.id is required")
+    incoming_id = str(body.get("jd_id") or "").strip()
+    if incoming_id and incoming_id != jd_id:
+        raise ValueError(f"jd_id={incoming_id!r} does not match jd.id={jd_id!r}")
+    return {"jd_id": jd_id, "jd": jd}
 
 
 def _gap_collect_bootstrap(body: dict[str, Any]) -> dict[str, Any]:
