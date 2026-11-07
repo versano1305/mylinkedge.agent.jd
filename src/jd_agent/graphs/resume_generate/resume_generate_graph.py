@@ -5,8 +5,7 @@ Flow
 1. ``load_session`` loads the session + job description via the shared
    postgres lib, takes ``user_id`` as the Neo4j ``ownerId``, rejects owners
    with more than one ``Person`` node, and seeds template defaults.
-2. ``mark_generating`` sets ``status = template_in_progress`` on the session
-   and publishes ``process.resume-generate/started``.
+2. ``mark_generating`` publishes ``RESUME_GENERATE_START``.
 3. ``load_dossier`` and ``load_jd_targets`` fan out, then join at
    ``score_demand``. ``load_jd_targets`` resolves JD skills to weighted
    seeds. ``build_atoms`` runs from the dossier branch.
@@ -15,8 +14,8 @@ Flow
    ``generate_summary`` → ``verify``.
 6. ``route_after_verify`` re-sends failed instances to ``generate_highlights``
    or failed summary to ``generate_summary`` while repair rounds remain.
-7. ``assemble_and_save`` builds resume + trace and persists via postgres;
-   ``mark_done`` publishes ``process.resume-generate/finish``.
+7. ``assemble_and_save`` builds resume + trace and publishes ``RESUME_GENERATE_DATA``;
+   ``mark_done`` publishes ``RESUME_GENERATE_END``.
 
 Invoke input: ``{"session_id": "<user_resume_builder uuid>"}``.
 """

@@ -20,7 +20,16 @@ def parse_evidence(raw_json: str | list[Any] | dict[str, Any] | None) -> list[Ev
     try:
         data = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
     except (json.JSONDecodeError, TypeError):
-        return []
+        if isinstance(raw_json, str):
+            data = {
+                "confidence": 0.0,
+                "evidenceText": raw_json,
+                "sourceKind": "text",
+                "relType": "text",
+                "sourceDocumentId": None,
+            }
+        else:
+            return []
     if isinstance(data, dict):
         data = [data]
     if not isinstance(data, list):
@@ -32,6 +41,8 @@ def parse_evidence(raw_json: str | list[Any] | dict[str, Any] | None) -> list[Ev
         raw_conf = entry.get("confidence", 0.0)
         if isinstance(raw_conf, str):
             raw_conf = _CONF_MAP.get(raw_conf.lower(), 0.0)
+        if raw_conf is None:
+            raw_conf = 0.0
         result.append(
             EvidenceEntry(
                 evidenceText=str(entry.get("evidenceText") or ""),

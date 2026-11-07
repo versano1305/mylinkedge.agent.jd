@@ -64,10 +64,7 @@ def test_loads_session_scoped_by_owner(
     fake_urb: FakeUserResumeBuilders, owner_person_count: dict, count: int
 ) -> None:
     owner_person_count["value"] = count
-    with patch(
-        "jd_agent.graphs.resume_generate.nodes.load_session.node.publish_resume_generate_start_from_state",
-    ) as publish:
-        result = load_session({"session_id": SESSION_ID}, {})
+    result = load_session({"session_id": SESSION_ID}, {})
 
     assert result["user_id"] == USER_ID
     assert result["session"].id == SESSION_ID
@@ -77,18 +74,16 @@ def test_loads_session_scoped_by_owner(
     assert result["generate_status"] == "generating"
     assert "person_id" not in result
     assert owner_person_count["calls"] == [(USER_ID, "Person")]
+
+
+def test_mark_generating_publishes_start() -> None:
+    with patch(
+        "jd_agent.graphs.resume_generate.nodes.mark_generating.node.publish_resume_generate_start_from_state",
+    ) as publish:
+        result = mark_generating(
+            {"session_id": SESSION_ID, "user_id": USER_ID},
+            {"configurable": {"run_id": "run-1"}},
+        )
+
     publish.assert_called_once()
-    assert publish.call_args.args[0]["session_id"] == SESSION_ID
-    assert publish.call_args.args[1] == {}
-
-
-def test_mark_generating_updates_only_this_session(
-    fake_urb: FakeUserResumeBuilders,
-) -> None:
-    result = mark_generating(
-        {"session_id": SESSION_ID},
-        {"configurable": {"thread_id": "thread-3"}},
-    )
-
-    assert fake_urb.status_updates == [(SESSION_ID, "template_in_progress")]
-    assert result["session"].status == "template_in_progress"
+    assert result == {}

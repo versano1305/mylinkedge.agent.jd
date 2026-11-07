@@ -1,4 +1,4 @@
-"""Final node for the resume-generate graph (persistence handled upstream)."""
+"""Final node: publish ``RESUME_GENERATE_END`` after assembly."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from typing import Any
 from langchain_core.runnables import RunnableConfig
 
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
+from jd_agent.shared.jd_event_hub import publish_resume_generate_end_from_state
 
 
 def mark_done(state: ResumeGenerateState, config: RunnableConfig) -> dict[str, Any]:
-    """No-op terminal node; graph output is already persisted."""
+    """Publish ``RESUME_GENERATE_END``; resume payload is published from ``assemble_and_save``."""
 
-    _ = config
-    _ = state
+    publish_resume_generate_end_from_state(state, config)
     return {}

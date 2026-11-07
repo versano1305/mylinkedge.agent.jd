@@ -26,6 +26,10 @@ from mylinkedge_agent_tools.event_hub.lifecycle import (
     JdGapAnalysisEndPayload,
     JdGapAnalysisStart,
     JdGapAnalysisStartPayload,
+    ResumeGenerateData,
+    ResumeGenerateDataPayload,
+    ResumeGenerateEnd,
+    ResumeGenerateEndPayload,
     ResumeGenerateStart,
     ResumeGenerateStartPayload,
 )
@@ -252,6 +256,56 @@ def publish_resume_generate_start(
             payload=ResumeGenerateStartPayload(
                 job_id=resolved_job_id,
                 run_id=_non_empty_str(run_id),
+            ),
+        )
+    )
+
+
+def publish_resume_generate_end(
+    *,
+    job_id: str,
+    user_id: str | None = None,
+    run_id: str | None = None,
+) -> None:
+    if not _lifecycle_publish_enabled():
+        return
+    resolved_job_id = job_id.strip()
+    if not resolved_job_id:
+        return
+    HubPublisher().publish(
+        ResumeGenerateEnd(
+            initiator=GraphId.RESUME_GENERATE,
+            user_id=_non_empty_str(user_id),
+            payload=ResumeGenerateEndPayload(
+                job_id=resolved_job_id,
+                run_id=_non_empty_str(run_id),
+            ),
+        )
+    )
+
+
+def publish_resume_generate_data(
+    *,
+    job_id: str,
+    kind: str,
+    data: Any,
+    user_id: str | None = None,
+    run_id: str | None = None,
+) -> None:
+    if not _lifecycle_publish_enabled():
+        return
+    resolved_job_id = job_id.strip()
+    if not resolved_job_id:
+        return
+    HubPublisher().publish(
+        ResumeGenerateData(
+            initiator=GraphId.RESUME_GENERATE,
+            user_id=_non_empty_str(user_id),
+            payload=ResumeGenerateDataPayload(
+                job_id=resolved_job_id,
+                run_id=_non_empty_str(run_id),
+                kind=kind,
+                data=data,
             ),
         )
     )
@@ -552,6 +606,43 @@ def publish_resume_generate_start_from_state(
     if not job_id:
         return
     publish_resume_generate_start(
+        job_id=job_id,
+        user_id=_non_empty_str(state.get("user_id")),
+        run_id=_run_id_from_config(config),
+    )
+
+
+def publish_resume_generate_data_from_state(
+    state: dict[str, Any],
+    *,
+    kind: str,
+    data: Any,
+    config: RunnableConfig | None = None,
+) -> None:
+    """Publish ``resume_generate_data`` from ``assemble_and_save``."""
+    session_id = _non_empty_str(state.get("session_id"))
+    job_id = _non_empty_str(state.get("job_id")) or session_id
+    if not job_id:
+        return
+    publish_resume_generate_data(
+        job_id=job_id,
+        kind=kind,
+        data=data,
+        user_id=_non_empty_str(state.get("user_id")),
+        run_id=_run_id_from_config(config),
+    )
+
+
+def publish_resume_generate_end_from_state(
+    state: dict[str, Any],
+    config: RunnableConfig | None = None,
+) -> None:
+    """Publish ``resume_generate_end`` from ``mark_done``."""
+    session_id = _non_empty_str(state.get("session_id"))
+    job_id = _non_empty_str(state.get("job_id")) or session_id
+    if not job_id:
+        return
+    publish_resume_generate_end(
         job_id=job_id,
         user_id=_non_empty_str(state.get("user_id")),
         run_id=_run_id_from_config(config),

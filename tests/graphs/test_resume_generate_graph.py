@@ -128,16 +128,13 @@ def test_resume_generate_smoke_minimum_invoke_returns_schema_valid_resume(
         "generate_summary_llm",
         lambda *args, **kwargs: SummaryResult(),
     )
+    monkeypatch.setenv("JD_LIFECYCLE_EVENTS_ENABLED", "0")
     with MockTaxonomyTypes(_TAXONOMY):
         result = asyncio.run(graph.ainvoke({"session_id": SESSION_ID}))
 
     assert result["user_id"] == USER_ID
-    assert fake_urb.status_updates == [(SESSION_ID, "template_in_progress")]
-    assert len(fake_urb.saved_resumes) == 1
-    saved_id, saved_resume, saved_trace = fake_urb.saved_resumes[0]
-    assert saved_id == SESSION_ID
-    assert saved_resume["$schema"].endswith("schema.json")
-    assert saved_trace["schema_version"] == 1
+    assert fake_urb.status_updates == []
+    assert fake_urb.saved_resumes == []
 
     resume = result["resume"]
     assert resume["$schema"].endswith("schema.json")

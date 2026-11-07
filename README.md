@@ -67,8 +67,10 @@ The graphs can be hosted by a container runtime. SQS, HTTP (`/threads`), and gRP
 - `jd_gap_analysis_queued` — invokes `gap_collect` with `payload.session_id`
 - `resume_generate_queued` — invokes `resume_generate` with `payload.session_id`
 
-Each graph's first node publishes the matching lifecycle start event (`jd_extraction_start`,
-`jd_gap_analysis_start`, `resume_generate_start`) via `mylinkedge_agent_tools.event_hub`.
+Each graph publishes lifecycle start/end (and data where applicable), e.g.
+``JD_EXTRACTION_START`` / ``JD_EXTRACTION_END`` for ``jd_extract``,
+``JD_GAP_ANALYSIS_*`` for ``gap_collect``, ``RESUME_GENERATE_*`` for
+``resume_generate``, via ``mylinkedge_agent_tools.event_hub``.
 Set `JD_LIFECYCLE_EVENTS_ENABLED=0` to disable publishing.
 
 Queue URLs and the dead-letter queue are in `skills.ai.ioc/localstack` (`stack-outputs.env` after deploy). Set `SQS_QUEUE_URL_PREFIX`, `SQS_QUEUE_NAME`, and `AWS_ENDPOINT_URL` (see `.env.example`), then:

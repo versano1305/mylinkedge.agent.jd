@@ -340,6 +340,78 @@ def test_publish_resume_generate_start(mock_hub_cls: MagicMock) -> None:
     assert event.user_id == "user-3"
 
 
+@patch.object(hub, "HubPublisher")
+def test_publish_resume_generate_data(mock_hub_cls: MagicMock) -> None:
+    publisher = MagicMock()
+    mock_hub_cls.return_value = publisher
+
+    hub.publish_resume_generate_data(
+        job_id="session-3",
+        kind="resume",
+        data={"resume": {"$schema": "x"}, "resume_trace": {}, "resume_date": "2026-01-01"},
+        user_id="user-3",
+        run_id="run-3",
+    )
+
+    event = publisher.publish.call_args.args[0]
+    assert event.type == LifecycleType.RESUME_GENERATE_DATA
+    assert event.initiator == GraphId.RESUME_GENERATE
+    assert event.user_id == "user-3"
+    assert event.payload.job_id == "session-3"
+    assert event.payload.run_id == "run-3"
+    assert event.payload.kind == "resume"
+    assert event.payload.data["resume"]["$schema"] == "x"
+
+
+@patch.object(hub, "publish_resume_generate_data")
+def test_publish_resume_generate_data_from_state(mock_publish: MagicMock) -> None:
+    hub.publish_resume_generate_data_from_state(
+        {"session_id": "sess-9", "user_id": "user-9"},
+        kind="resume",
+        data={"resume": {}},
+        config={"configurable": {"run_id": "run-9"}},
+    )
+    mock_publish.assert_called_once_with(
+        job_id="sess-9",
+        kind="resume",
+        data={"resume": {}},
+        user_id="user-9",
+        run_id="run-9",
+    )
+
+
+@patch.object(hub, "HubPublisher")
+def test_publish_resume_generate_end(mock_hub_cls: MagicMock) -> None:
+    publisher = MagicMock()
+    mock_hub_cls.return_value = publisher
+
+    hub.publish_resume_generate_end(
+        job_id="session-3",
+        user_id="user-3",
+        run_id="run-3",
+    )
+
+    event = publisher.publish.call_args.args[0]
+    assert event.type == LifecycleType.RESUME_GENERATE_END
+    assert event.initiator == GraphId.RESUME_GENERATE
+    assert event.user_id == "user-3"
+    assert event.payload.job_id == "session-3"
+    assert event.payload.run_id == "run-3"
+
+
+@patch.object(hub, "publish_resume_generate_end")
+def test_publish_resume_generate_end_from_state(mock_publish: MagicMock) -> None:
+    hub.publish_resume_generate_end_from_state(
+        {"session_id": "sess-9", "user_id": "user-9"},
+        {"configurable": {"run_id": "run-9"}},
+    )
+    mock_publish.assert_called_once_with(
+        job_id="sess-9",
+        user_id="user-9",
+        run_id="run-9",
+    )
+
+
 @patch.object(hub, "publish_jd_extraction_start")
 def test_publish_jd_extraction_start_from_state(mock_publish: MagicMock) -> None:
     hub.publish_jd_extraction_start_from_state(

@@ -13,7 +13,8 @@ The test session must already exist with:
 
 Invoke with ``{"session_id": "<uuid>"}`` only — the minimum graph input.
 LLM steps are still stubs (WU-09+); the run should finish with a schema-valid
-empty ``resume`` and ``trace``.
+empty ``resume`` and ``trace``. Resume persistence is via ``RESUME_GENERATE_DATA``
+consumers, not direct graph writes.
 """
 
 from __future__ import annotations
@@ -26,7 +27,6 @@ from dotenv import load_dotenv
 
 from jd_agent.graphs.resume_generate.models import ResumeTrace
 from jd_agent.graphs.resume_generate.resume_generate_graph import graph
-from mylinkedge_agent_tools.postgres import get_postgres_db
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_REPO_ROOT / ".env")
@@ -84,10 +84,3 @@ def test_resume_generate_graph_live_minimum_invoke() -> None:
     assert isinstance(demand.get("fit_profile"), (int, float))
     assert demand.get("d_star")
     assert demand.get("edges_subset") is not None
-
-    row = get_postgres_db().user_resume_builders.get_by_id(session_id)
-    assert row is not None
-    assert row.status == "generate"
-    assert isinstance(row.resume, dict)
-    assert row.resume.get("$schema", "").endswith("schema.json")
-    assert isinstance(row.resume_trace, dict)

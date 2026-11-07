@@ -18,3 +18,9 @@ def test_parse_evidence_accepts_list_payload() -> None:
     entries = parse_evidence([{"evidenceText": "x", "confidence": 1.0}])
     assert len(entries) == 1
     assert entries[0].confidence == 1.0
+
+
+def test_parse_evidence_null_confidence_defaults_to_zero() -> None:
+    entries = parse_evidence([{"evidenceText": "x", "confidence": None}])
+    assert len(entries) == 1
+    assert entries[0].confidence == 0.0
