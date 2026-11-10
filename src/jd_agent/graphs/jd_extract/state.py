@@ -37,9 +37,12 @@ class JdExtractState(TypedDict, total=False):
     # Intermediate
     jd_text: str  # Normalized plain-text JD after fetch or copy-paste
     jd_sections: dict[str, Any]  # Serialized JDSectionParseResult after save_jd_sections
+    jd_demands: dict[str, Any]  # Demand closure after compute_demands
 
-    # Skills map-reduce (enriched before save_jd_skills, then cleared)
+    # Skills subflow (enriched before save_jd_skills, then cleared)
     section_tasks: Annotated[list[dict[str, Any]], _replace_list]
+    # Published ``extract_skills`` event refs for ``collect_section_skill_results``
+    section_skill_extractions: Annotated[list[dict[str, Any]], _replace_list]
     section_skill_results: Annotated[list[dict[str, Any]], operator.add]
 
     # Output

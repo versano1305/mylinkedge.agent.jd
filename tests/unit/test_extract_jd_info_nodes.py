@@ -4,13 +4,23 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pytest
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Overwrite, Send
-from mylinkedge_agent_tools.skill_matching import ExtractedSkill
+from langgraph.types import Overwrite
+from mylinkedge_agent_tools.event_hub import (
+    EventProcessingStatus,
+    EventStatus,
+    EventStatusBatch,
+    ExtractSkills,
+    GraphId,
+    LookupQuery,
+    ResolvedNode,
+)
 
 from jd_agent.graphs.jd_extract.nodes.extract_jd_info.node import (
-    dispatch_section_skill_tasks,
+    collect_section_skill_results,
     extract_section_skills,
+    route_section_skill_extraction,
     initialize_missing_skill_fields,
     prepare_jd_info_sections,
     save_jd_skills,
@@ -35,38 +45,11 @@ _PARTITION_ROWS = [
 ]
 
 
-def test_dispatch_returns_send_per_section_task() -> None:
-    state = {
-        "jd_id": "jd-1",
-        "section_tasks": [
-            {
-                "section_key": "requirements",
-                "section_content": "Python",
-                "prompt_config": {"key": "requirements"},
-                "sort_order": 1,
-            },
-            {
-                "section_key": "description",
-                "section_content": "Build APIs",
-                "prompt_config": {"key": "description"},
-                "sort_order": 0,
-            },
-        ],
-    }
-
-    result = dispatch_section_skill_tasks(state)
-
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert all(isinstance(item, Send) for item in result)
-    assert all(item.node == "extract_section_skills" for item in result)
-    assert result[0].arg["section_task"]["section_key"] == "requirements"
-    assert "section_task" in result[1].arg
-    assert "jd_id" not in result[1].arg
-
-
-def test_dispatch_skips_to_save_when_no_tasks() -> None:
-    assert dispatch_section_skill_tasks({"jd_id": "jd-1", "section_tasks": []}) == (
+def test_route_section_skill_extraction() -> None:
+    assert route_section_skill_extraction({"section_tasks": [{"section_key": "a"}]}) == (
+        "extract_section_skills"
+    )
+    assert route_section_skill_extraction({"jd_id": "jd-1", "section_tasks": []}) == (
         "save_jd_skills"
     )
 
@@ -114,103 +97,183 @@ def _make_task() -> dict:
     }
 
 
-def test_extract_section_skills_calls_tool_on_full_section_text() -> None:
-    """extract_section_skills passes section content once and packages results."""
-    skill_a = ExtractedSkill(
-        id="skill-a",
+_NODE = "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node"
+
+
+def _resolved(
+    *,
+    skill_id: str,
+    name: str,
+    query_name: str | None = None,
+    surface_form: str | None = None,
+) -> ResolvedNode:
+    query_name = query_name or name
+    return ResolvedNode(
+        query=LookupQuery(
+            label="Skill",
+            name=query_name,
+            surface_form=surface_form,
+        ),
+        label="Skill",
+        id=skill_id,
+        element_id=f"4:{skill_id}:0",
+        name=name,
+    )
+
+
+def _status(
+    event_id: str,
+    status: EventProcessingStatus = EventProcessingStatus.SUCCEEDED,
+    resolved: list[ResolvedNode] | None = None,
+    unresolved: list[LookupQuery] | None = None,
+    error: dict | None = None,
+) -> EventStatus:
+    return EventStatus(
+        event_id=event_id,
+        status=status,
+        topic="utility",
+        type="extract_skills",
+        initiator="jd_extract",
+        result=(
+            {
+                "extracted_skills": [],
+                "lookup_result": {
+                    "resolved": [n.model_dump(mode="json") for n in resolved or []],
+                    "unresolved": [q.model_dump(mode="json") for q in unresolved or []],
+                },
+            }
+            if status == EventProcessingStatus.SUCCEEDED
+            else None
+        ),
+        error=error,
+    )
+
+
+def test_extract_section_skills_publishes_one_event_per_section() -> None:
+    with patch(f"{_NODE}.HubPublisher") as publisher_cls:
+        result = extract_section_skills(
+            {
+                "jd_id": "jd-1",
+                "user_id": "user-1",
+                "section_tasks": [_make_task()],
+            },
+            {"configurable": {"run_id": "run-1"}},
+        )
+
+    event = publisher_cls.return_value.publish.call_args.args[0]
+    assert isinstance(event, ExtractSkills)
+    assert event.initiator == GraphId.JD_EXTRACT
+    assert event.user_id == "user-1"
+    assert event.payload.context == {
+        "section_key": "requirements",
+        "job_description_id": "jd-1",
+        "run_id": "run-1",
+    }
+    refs = result["section_skill_extractions"]
+    assert isinstance(refs, Overwrite)
+    assert refs.value == [
+        {"section_key": "requirements", "event_id": str(event.id)},
+    ]
+
+
+def test_extract_section_skills_skips_blank_sections() -> None:
+    with patch(f"{_NODE}.HubPublisher") as publisher_cls:
+        result = extract_section_skills(
+            {
+                "section_tasks": [
+                    {**_make_task(), "section_content": "   "},
+                    {**_make_task(), "section_key": "other", "section_content": "Go"},
+                ]
+            },
+            {},
+        )
+
+    assert publisher_cls.return_value.publish.call_count == 1
+    refs = result["section_skill_extractions"]
+    assert isinstance(refs, Overwrite)
+    assert refs.value[0]["section_key"] == "other"
+
+
+def test_collect_section_skill_results_batches_and_filters_unresolved() -> None:
+    python = _resolved(
+        skill_id="skill-a",
         name="Python",
-        description="",
-        evidence_sentence="3+ years Python.",
         surface_form="Python",
     )
-    skill_b = ExtractedSkill(
-        id="skill-b",
-        name="Kubernetes",
-        description="",
-        evidence_sentence="Kubernetes preferred.",
-        surface_form="Kubernetes",
-    )
-    task = _make_task()
-
-    with patch(
-        "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.relevant_skills_from_text",
-        return_value=[skill_a, skill_b],
-    ) as mock_match:
-        config = {"run_name": "test-extract"}
-        result = extract_section_skills({"section_task": task}, config)
-
-    mock_match.assert_called_once_with(task["section_content"], config=config)
-    assert result == {
-        "section_skill_results": [
-            {
-                "section_key": "requirements",
-                "skills": [
-                    {
-                        "id": "skill-a",
-                        "name": "Python",
-                        "skill_type": "unknown",
-                        "type": "Skill",
-                        "aliases": [],
-                        "properties": {},
-                        "is_existing": True,
-                        "evidence_sentence": "3+ years Python.",
-                        "surface_form": "Python",
-                        "candidate_ids": [],
-                    },
-                    {
-                        "id": "skill-b",
-                        "name": "Kubernetes",
-                        "skill_type": "unknown",
-                        "type": "Skill",
-                        "aliases": [],
-                        "properties": {},
-                        "is_existing": True,
-                        "evidence_sentence": "Kubernetes preferred.",
-                        "surface_form": "Kubernetes",
-                        "candidate_ids": [],
-                    },
-                ],
-            }
+    mystery = LookupQuery(label="Skill", name="Mystery Stack")
+    sql = _resolved(skill_id="skill-b", name="SQL")
+    client = MagicMock()
+    client.get_many.side_effect = [
+        EventStatusBatch(
+            events=[
+                _status("evt-1", resolved=[python], unresolved=[mystery]),
+                _status("evt-2", EventProcessingStatus.PROCESSING),
+            ],
+        ),
+        EventStatusBatch(events=[_status("evt-2", resolved=[sql])]),
+    ]
+    state = {
+        "section_skill_extractions": [
+            {"section_key": "requirements", "event_id": "evt-1"},
+            {"section_key": "description", "event_id": "evt-2"},
         ]
     }
 
-
-def test_extract_section_skills_filters_unresolved_skills() -> None:
-    resolved = ExtractedSkill(
-        id="skill-a",
-        name="Python",
-        evidence_sentence="Need Python",
-        surface_form="Python",
-    )
-    unresolved = ExtractedSkill(
-        name="Mystery Stack",
-        evidence_sentence="Need Mystery Stack",
-        surface_form="Mystery Stack",
-    )
-
-    with patch(
-        "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.relevant_skills_from_text",
-        return_value=[resolved, unresolved],
+    with (
+        patch(f"{_NODE}.EventStatusClient", return_value=client),
+        patch(f"{_NODE}.time.sleep"),
     ):
-        result = extract_section_skills({"section_task": _make_task()}, {})
+        result = collect_section_skill_results(state, {})
 
-    skills = result["section_skill_results"][0]["skills"]
-    assert [skill["name"] for skill in skills] == ["Python"]
-    assert all(skill["is_existing"] for skill in skills)
+    assert [call.args[0] for call in client.get_many.call_args_list] == [
+        ["evt-1", "evt-2"],
+        ["evt-2"],
+    ]
+    assert result["section_skill_extractions"] == Overwrite([])
+    by_section = {r["section_key"]: r["skills"] for r in result["section_skill_results"]}
+    assert by_section["requirements"] == [
+        {"id": "skill-a", "name": "Python", "surface_form": "Python"}
+    ]
+    assert by_section["description"] == [
+        {"id": "skill-b", "name": "SQL", "surface_form": "SQL"}
+    ]
 
 
-def test_extract_section_skills_returns_empty_for_blank_section() -> None:
-    task = {**_make_task(), "section_content": "   "}
-
-    with patch(
-        "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.relevant_skills_from_text",
-    ) as mock_match:
-        result = extract_section_skills({"section_task": task}, {})
-
-    mock_match.assert_not_called()
-    assert result == {
-        "section_skill_results": [{"section_key": "requirements", "skills": []}]
+def test_collect_section_skill_results_raises_on_failed_event() -> None:
+    client = MagicMock()
+    client.get_many.return_value = EventStatusBatch(
+        events=[
+            _status(
+                "evt-1",
+                EventProcessingStatus.FAILED,
+                error={"code": "handler_error", "message": "boom"},
+            )
+        ]
+    )
+    state = {
+        "section_skill_extractions": [{"section_key": "requirements", "event_id": "evt-1"}]
     }
+
+    with (
+        patch(f"{_NODE}.EventStatusClient", return_value=client),
+        pytest.raises(RuntimeError, match="boom"),
+    ):
+        collect_section_skill_results(state, {})
+
+
+def test_collect_section_skill_results_times_out() -> None:
+    client = MagicMock()
+    client.get_many.return_value = EventStatusBatch(missing=["evt-1"])
+    state = {
+        "section_skill_extractions": [{"section_key": "requirements", "event_id": "evt-1"}]
+    }
+
+    with (
+        patch(f"{_NODE}.EventStatusClient", return_value=client),
+        patch(f"{_NODE}._SKILL_EXTRACT_TIMEOUT_SECONDS", 0.0),
+        pytest.raises(TimeoutError, match="evt-1"),
+    ):
+        collect_section_skill_results(state, {})
 
 
 def test_initialize_missing_skill_fields_applies_p1_fallbacks() -> None:
@@ -326,15 +389,17 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
     builder = StateGraph(JdExtractState)
     builder.add_node("prepare_jd_info_sections", prepare_jd_info_sections)
     builder.add_node("extract_section_skills", extract_section_skills)
+    builder.add_node("collect_section_skill_results", collect_section_skill_results)
     builder.add_node("initialize_missing_skill_fields", initialize_missing_skill_fields)
     builder.add_node("save_jd_skills", save_jd_skills)
     builder.add_edge(START, "prepare_jd_info_sections")
     builder.add_conditional_edges(
         "prepare_jd_info_sections",
-        dispatch_section_skill_tasks,
+        route_section_skill_extraction,
         ["extract_section_skills", "save_jd_skills"],
     )
-    builder.add_edge("extract_section_skills", "initialize_missing_skill_fields")
+    builder.add_edge("extract_section_skills", "collect_section_skill_results")
+    builder.add_edge("collect_section_skill_results", "initialize_missing_skill_fields")
     builder.add_edge("initialize_missing_skill_fields", "save_jd_skills")
     builder.add_edge("save_jd_skills", END)
     subgraph = builder.compile()
@@ -358,12 +423,14 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
         ),
     ]
 
-    skill = ExtractedSkill(
-        id="skill-a",
+    skill = _resolved(
+        skill_id="skill-a",
         name="Python",
-        description="",
-        evidence_sentence="Need Python",
         surface_form="Python",
+    )
+    status_client = MagicMock()
+    status_client.get_many.side_effect = lambda ids: EventStatusBatch(
+        events=[_status(event_id, resolved=[skill]) for event_id in ids]
     )
 
     with (
@@ -375,10 +442,8 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
             "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.list_by_type",
             return_value=partition_rows,
         ),
-        patch(
-            "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.relevant_skills_from_text",
-            return_value=[skill],
-        ) as match_mock,
+        patch(f"{_NODE}.HubPublisher") as publisher_cls,
+        patch(f"{_NODE}.EventStatusClient", return_value=status_client),
         patch(
             "jd_agent.graphs.jd_extract.nodes.extract_jd_info.node.publish_skill_linked_from_state",
         ) as publish_mock,
@@ -396,7 +461,8 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
             }
         )
 
-    assert match_mock.call_count == 2
+    assert publisher_cls.return_value.publish.call_count == 2
+    status_client.get_many.assert_called_once()
     publish_mock.assert_called_once()
     assert publish_mock.call_args.kwargs["links"] == [
         {
@@ -406,14 +472,8 @@ def test_map_reduce_subgraph_fans_out_and_merges() -> None:
             "properties": {
                 "name": "Python",
                 "requirement_level": 1.0,
-                "skill_type": "unknown",
-                "type": "Skill",
-                "aliases": [],
-                "properties": {},
-                "is_existing": True,
-                "evidence_sentence": "Need Python",
                 "surface_form": "Python",
-                "candidate_ids": [],
+                "evidence_sentence": "",
                 "importance": 1.0,
                 "substitutable": False,
                 "min_years": None,

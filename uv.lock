@@ -1051,6 +1051,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "langgraph-checkpoint-mongodb" },
     { name = "mylinkedge-agent-tools-event-hub" },
+    { name = "mylinkedge-agent-tools-graph-algorithms" },
     { name = "mylinkedge-agent-tools-langgraph-streaming", extra = ["http", "server"] },
     { name = "mylinkedge-agent-tools-postgres" },
     { name = "mylinkedge-agent-tools-shared" },
@@ -1088,6 +1089,7 @@ requires-dist = [
     { name = "langgraph-checkpoint-mongodb", specifier = ">=0.5.0" },
     { name = "langgraph-cli", extras = ["inmem"], marker = "extra == 'dev'", specifier = ">=0.4.14" },
     { name = "mylinkedge-agent-tools-event-hub", editable = "../mylinkedge.agent.tools/projects/event-hub" },
+    { name = "mylinkedge-agent-tools-graph-algorithms", editable = "../mylinkedge.agent.tools/projects/graph-algorithms" },
     { name = "mylinkedge-agent-tools-langgraph-streaming", extras = ["server", "http"], editable = "../mylinkedge.agent.tools/projects/langgraph-streaming" },
     { name = "mylinkedge-agent-tools-postgres", editable = "../mylinkedge.agent.tools/projects/postgres" },
     { name = "mylinkedge-agent-tools-shared", editable = "../mylinkedge.agent.tools/projects/shared" },
@@ -1925,6 +1927,36 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", specifier = ">=0.24.0" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "ruff", specifier = ">=0.8.0" },
+]
+
+[[package]]
+name = "mylinkedge-agent-tools-graph-algorithms"
+version = "0.1.0"
+source = { editable = "../mylinkedge.agent.tools/projects/graph-algorithms" }
+dependencies = [
+    { name = "mylinkedge-agent-tools-shared" },
+    { name = "mylinkedge-agent-tools-skills" },
+    { name = "networkx" },
+    { name = "pydantic" },
+    { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "mylinkedge-agent-tools-shared", editable = "../mylinkedge.agent.tools/projects/shared" },
+    { name = "mylinkedge-agent-tools-skills", editable = "../mylinkedge.agent.tools/projects/skills-graph" },
+    { name = "networkx", specifier = ">=3.0" },
+    { name = "pydantic", specifier = ">=2.0" },
+    { name = "scipy", specifier = ">=1.11" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mylinkedge-agent-tools-postgres", editable = "../mylinkedge.agent.tools/projects/postgres" },
+    { name = "pytest", specifier = ">=8.0.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "ruff", specifier = ">=0.8.0" },
 ]

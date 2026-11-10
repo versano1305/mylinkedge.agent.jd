@@ -17,6 +17,8 @@ from jd_agent.graphs.resume_generate.constants import DEFAULT_TEMPLATE
 from jd_agent.graphs.resume_generate.state import ResumeGenerateState
 from jd_agent.graphs.resume_generate.taxonomy_types import node_type
 from jd_agent.integrations.skills_graph import count_owner_nodes
+
+
 def load_session(
     state: ResumeGenerateState, config: RunnableConfig
 ) -> dict[str, Any]:

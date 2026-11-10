@@ -19,9 +19,14 @@ def test_jd_extract_graph_has_expected_nodes() -> None:
     assert "save_jd_sections" in node_names
     assert "prepare_jd_info_sections" in node_names
     assert "extract_section_skills" in node_names
+    assert "collect_section_skill_results" in node_names
     assert "initialize_missing_skill_fields" in node_names
     assert "save_jd_skills" in node_names
+    assert "compute_demands" in node_names
     assert "resolve_company" in node_names
+    edge_pairs = {(edge.source, edge.target) for edge in graph.get_graph().edges}
+    assert ("save_jd_skills", "compute_demands") in edge_pairs
+    assert ("compute_demands", "resolve_company") in edge_pairs
     assert "upsert_extraction" not in node_names
     assert "mark_done" in node_names
     assert "extract_jd_info" not in node_names

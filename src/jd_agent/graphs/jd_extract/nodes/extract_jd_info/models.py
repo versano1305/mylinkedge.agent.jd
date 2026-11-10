@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class SectionWorkItem(BaseModel):
-    """One section paired with its ``agent_prompt_config`` row for fan-out."""
+    """One section paired with its ``agent_prompt_config`` row."""
 
     section_key: str
     section_content: str
@@ -17,14 +17,14 @@ class SectionWorkItem(BaseModel):
 
 
 class SectionSkillResult(BaseModel):
-    """Skill payload produced by one section's map branch."""
+    """Skill payload for one JD section after hub ``extract_skills`` results."""
 
     section_key: str
     skills: list[dict[str, Any]] = Field(default_factory=list)
 
 
-class SectionSkillWorkerState(TypedDict, total=False):
-    """Isolated state for one section skill extraction."""
+class SectionSkillExtractionRef(BaseModel):
+    """Published ``extract_skills`` event for one section."""
 
-    section_task: dict[str, Any]
-    section_skill_results: list[dict[str, Any]]
+    section_key: str
+    event_id: str

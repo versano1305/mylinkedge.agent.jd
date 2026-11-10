@@ -17,6 +17,7 @@ dependencies = [
     "mylinkedge-agent-tools-shared>=0.1.0",
     "mylinkedge-agent-tools-skill-matching>=0.1.0",
     "mylinkedge-agent-tools-skills>=0.1.0",
+    "mylinkedge-agent-tools-graph-algorithms>=0.1.0",
     "mylinkedge-agent-tools-taxonomy>=0.1.0",
     "neo4j>=5.24.0",
     "networkx>=3.0",
@@ -96,6 +97,7 @@ mylinkedge-agent-tools-shared = { path = "../mylinkedge.agent.tools/projects/sha
 mylinkedge-agent-tools-skill-experience = { path = "../mylinkedge.agent.tools/projects/skill-experience", editable = true }
 mylinkedge-agent-tools-skill-matching = { path = "../mylinkedge.agent.tools/projects/skill-matching", editable = true }
 mylinkedge-agent-tools-skills = { path = "../mylinkedge.agent.tools/projects/skills-graph", editable = true }
+mylinkedge-agent-tools-graph-algorithms = { path = "../mylinkedge.agent.tools/projects/graph-algorithms", editable = true }
 mylinkedge-agent-tools-taxonomy = { path = "../mylinkedge.agent.tools/projects/taxonomy-graph", editable = true }
 
 # Before publish — comment out path= lines above and uncomment these:
@@ -107,4 +109,5 @@ mylinkedge-agent-tools-taxonomy = { path = "../mylinkedge.agent.tools/projects/t
 # mylinkedge-agent-tools-skill-experience = { index = "codeartifact" }
 # mylinkedge-agent-tools-skill-matching = { index = "codeartifact" }
 # mylinkedge-agent-tools-skills = { index = "codeartifact" }
+# mylinkedge-agent-tools-graph-algorithms = { index = "codeartifact" }
 # mylinkedge-agent-tools-taxonomy = { index = "codeartifact" }

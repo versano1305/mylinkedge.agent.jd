@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any, Literal
 
 from langchain_core.runnables import RunnableConfig
+from mylinkedge_agent_tools.event_hub import (
+    CompanyLookup,
+    CompanyLookupResult,
+    EventProcessingStatus,
+    EventStatusClient,
+    GraphId,
+    HubPublisher,
+    UnresolvedNode,
+)
+from mylinkedge_agent_tools.event_hub.lookup import CompanyLookupPayload
 from mylinkedge_agent_tools.langgraph_streaming.annotations import thinking
 from mylinkedge_agent_tools.langgraph_streaming.custom_events import (
     emit_client_event,
@@ -17,10 +28,28 @@ from jd_agent.integrations.supabase.jd_repository import (
     URL_ORIGIN_TYPES,
     JobDescription,
 )
-from jd_agent.shared.jd_event_hub import (
-    publish_company_lookup_from_state,
-    publish_jd_extraction_end_from_state,
-)
+from jd_agent.shared.jd_event_hub import publish_jd_extraction_end_from_state
+
+_COMPANY_LOOKUP_TIMEOUT_SECONDS = 120.0
+_COMPANY_LOOKUP_STATUS_HTTP_TIMEOUT_SECONDS = 30.0
+_COMPANY_LOOKUP_POLL_INTERVAL_SECONDS = 1.0
+
+
+def _non_empty_str(value: object) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def _run_id_from_config(config: RunnableConfig | None) -> str | None:
+    if not isinstance(config, dict):
+        return None
+    configurable = config.get("configurable")
+    if not isinstance(configurable, dict):
+        return None
+    return _non_empty_str(configurable.get("run_id")) or _non_empty_str(
+        configurable.get("thread_id")
+    )
 
 
 def _require_jd(state: JdExtractState) -> JobDescription:
@@ -76,20 +105,59 @@ def resolve_company(
     state: JdExtractState,
     config: RunnableConfig,
 ) -> dict[str, Any]:
-    """Publish ``COMPANY_LOOKUP`` for ``jd.company_name``.
-
-    The company id is resolved downstream from the lookup result.
-    """
+    """Publish ``company_lookup`` and poll hub status until a company id returns."""
     jd = _require_jd(state)
     company_name = (jd.company_name or "").strip()
     if not company_name:
         raise ValueError("company_name is required before resolve_company")
-    publish_company_lookup_from_state(
-        state,
-        company_name=company_name,
-        config=config,
+
+    jd_id = _non_empty_str(state.get("jd_id")) or _non_empty_str(jd.id)
+    context: dict[str, Any] = {}
+    if jd_id:
+        context["job_description_id"] = jd_id
+        context["job_id"] = _non_empty_str(state.get("job_id")) or jd_id
+    run_id = _run_id_from_config(config)
+    if run_id:
+        context["run_id"] = run_id
+
+    event = CompanyLookup(
+        initiator=GraphId.JD_EXTRACT,
+        user_id=_non_empty_str(state.get("user_id")),
+        payload=CompanyLookupPayload(
+            nodes=[UnresolvedNode(label="Company", name=company_name)],
+            context=context,
+        ),
     )
-    return {}
+    publisher = HubPublisher(
+        status_client=EventStatusClient(timeout=_COMPANY_LOOKUP_STATUS_HTTP_TIMEOUT_SECONDS),
+    )
+    publisher.publish(event)
+
+    deadline = time.monotonic() + _COMPANY_LOOKUP_TIMEOUT_SECONDS
+    current = publisher.get_status(event.id)
+    while current is None or not current.is_terminal:
+        if time.monotonic() >= deadline:
+            last = current.status if current is not None else "unknown"
+            raise TimeoutError(
+                f"company_lookup {event.id} did not finish in time (last status: {last})"
+            )
+        time.sleep(_COMPANY_LOOKUP_POLL_INTERVAL_SECONDS)
+        current = publisher.get_status(event.id)
+
+    if current.status != EventProcessingStatus.SUCCEEDED:
+        detail = current.error.message if current.error else current.status
+        raise RuntimeError(f"company_lookup {event.id} failed: {detail}")
+
+    result = current.result_as(CompanyLookupResult)
+    if result is None or not result.resolved:
+        raise ValueError(f"company_lookup could not resolve company_name={company_name!r}")
+
+    company_id = (result.resolved[0].id or "").strip()
+    if not company_id:
+        raise ValueError(
+            f"company_lookup resolved {company_name!r} without a company id"
+        )
+    return {"company_id": company_id}
 
 
 @thinking("Finishing JD extraction…")

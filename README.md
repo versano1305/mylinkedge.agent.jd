@@ -121,9 +121,12 @@ make test
 Live graph tests are skipped unless their opt-in flags are set (see `.env.example`):
 
 ```bash
-# jd_extract
+# jd_extract (also needs LocalStack SNS utility topic + event hub consuming extract_skills)
 RUN_JD_EXTRACT_INTEGRATION=1 JD_EXTRACT_TEST_JD_ID=... make test
 
 # gap_collect (also needs NEO4J_* + a session whose JD is already extracted)
 RUN_GAP_COLLECT_INTEGRATION=1 GAP_COLLECT_TEST_SESSION_ID=... make test
+
+# resolve_company (LocalStack SNS + event hub status API + known Company.name)
+RUN_RESOLVE_COMPANY_INTEGRATION=1 RESOLVE_COMPANY_TEST_COMPANY_NAME=Jifiti make test
 ```
