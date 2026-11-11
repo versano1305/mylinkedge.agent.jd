@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 from conftest import SESSION_ID, USER_ID, FakeUserResumeBuilders
 from mylinkedge_agent_tools.postgres import JobDescriptionSkill
+from mylinkedge_agent_tools.skills import SkillGraphNode, SkillsGraph
 from mylinkedge_agent_tools.taxonomy import TaxonomyGraph, TaxonomyNode
 
 from jd_agent.graphs.resume_generate.models import Dossier, ResumeTrace
@@ -67,8 +66,14 @@ def test_resume_generate_smoke_minimum_invoke_returns_schema_valid_resume(
     """Full graph invoke with only ``{"session_id": ...}`` (no Neo4j / Supabase)."""
     loaded = fake_urb.sessions[SESSION_ID]
     loaded.job_description.skills = [JobDescriptionSkill(id="skill-aws", name="AWS")]
-    fake_skills_graph = SimpleNamespace(
-        nodes={"skill-aws": SimpleNamespace(name="AWS", skill_type="Tool")},
+    fake_skills_graph = SkillsGraph(
+        nodes={
+            "skill-aws": SkillGraphNode(
+                id="skill-aws",
+                name="AWS",
+                properties={"skillType": "Tool"},
+            )
+        },
         edges=[],
     )
     jd_targets_node = importlib.import_module(

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import importlib
-from types import SimpleNamespace
 
 import pytest
+from mylinkedge_agent_tools.skills import SkillEdge, SkillGraphNode, SkillsGraph
 
 from jd_agent.graphs.resume_generate.constants import HAS_SKILL_SEED
 from jd_agent.graphs.resume_generate.nodes.score_demand.node import score_demand
@@ -13,7 +13,6 @@ from jd_agent.graphs.resume_generate.nodes.score_demand.profile_seeds import (
     profile_supply_seeds,
 )
 from jd_agent.shared.skill_closures import supply_closure_noisy_or, supply_fanout
-from jd_agent.shared.supply_edge_prune import prune_supply_edges
 
 SKILL_META = {
     "A": {"name": "Microservices", "skillType": "Capability"},
@@ -38,19 +37,25 @@ def test_profile_supply_seeds_splits_instance_and_has_skill() -> None:
     assert s_explicit.get("X", 0.0) == 0.0
 
 
-def test_score_demand_node_builds_demand_payload(monkeypatch) -> None:
-    def _fake_graph():
-        nodes = {
-            nid: SimpleNamespace(name=meta["name"], skill_type=meta["skillType"])
-            for nid, meta in SKILL_META.items()
-        }
-        edge_objs = [SimpleNamespace(source=s, target=t, type=ty) for s, t, ty in EDGES]
-        return SimpleNamespace(nodes=nodes, edges=edge_objs)
+def _skills_graph() -> SkillsGraph:
+    nodes = {
+        nid: SkillGraphNode(
+            id=nid,
+            name=meta["name"],
+            properties={"skillType": meta["skillType"]},
+        )
+        for nid, meta in SKILL_META.items()
+    }
+    edges = [
+        SkillEdge(id=f"e{i}", source=s, target=t, type=ty) for i, (s, t, ty) in enumerate(EDGES)
+    ]
+    return SkillsGraph(nodes=nodes, edges=edges)
 
-    node_mod = importlib.import_module(
-        "jd_agent.graphs.resume_generate.nodes.score_demand.node"
-    )
-    monkeypatch.setattr(node_mod, "get_skills_graph", _fake_graph)
+
+def test_score_demand_node_builds_demand_payload(monkeypatch) -> None:
+
+    node_mod = importlib.import_module("jd_agent.graphs.resume_generate.nodes.score_demand.node")
+    monkeypatch.setattr(node_mod, "get_skills_graph", _skills_graph)
 
     state = {
         "jd_targets": [
@@ -79,9 +84,7 @@ def test_score_demand_node_builds_demand_payload(monkeypatch) -> None:
     is_domain = lambda sid: False  # noqa: E731
     fanout = supply_fanout(EDGES, is_domain)
     full = supply_closure_noisy_or({"B": 1.0}, EDGES, is_domain, fanout=fanout)
-    pruned = supply_closure_noisy_or(
-        {"B": 1.0}, demand["edges_subset"], is_domain, fanout=fanout
-    )
+    pruned = supply_closure_noisy_or({"B": 1.0}, demand["edges_subset"], is_domain, fanout=fanout)
     for sid in demand["d_star"]:
         assert pruned.get(sid, 0.0) == pytest.approx(full.get(sid, 0.0))
 

@@ -7,11 +7,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from mylinkedge_agent_tools.graph_algorithms import DemandPropagationResult
 
-from jd_agent.graphs.jd_extract.nodes.compute_demands.node import (
-    compute_demands,
-    demand_seeds,
-)
+from jd_agent.graphs.jd_extract.nodes.compute_demands.node import compute_demands
 from jd_agent.integrations.supabase.jd_repository import JobDescription, JobDescriptionSkill
+from jd_agent.shared.demand_seeds import demand_seeds
 
 _NODE = "jd_agent.graphs.jd_extract.nodes.compute_demands.node"
 
@@ -33,6 +31,18 @@ def test_demand_seeds_keeps_strongest_resolved_weight() -> None:
         ]
     )
     assert seeds == {"skill-python": 0.9, "skill-sql": 0.25}
+
+
+def test_demand_seeds_reads_skill_id_and_known_ids() -> None:
+    seeds = demand_seeds(
+        [
+            {"skill_id": "A", "importance": 0.2},
+            {"skill_id": "A", "importance": 0.8},
+            {"skill_id": "missing", "importance": 1.0},
+        ],
+        known_ids={"A"},
+    )
+    assert seeds == {"A": 0.8}
 
 
 def test_compute_demands_publishes_closure() -> None:
